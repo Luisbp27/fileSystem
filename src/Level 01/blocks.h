@@ -7,11 +7,11 @@
 #include <string.h> // strerror()
 
 #define BLOCKSIZE 1024
+#define RW_PERMS 0666
 
 // Error management
-#define SUCCES 0
-#define FAILURE -1 
-
+#define SUCCESS 0
+#define FAILURE -1
 
 int bmount(const char *path);
 int bumount();
