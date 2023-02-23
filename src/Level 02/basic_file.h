@@ -6,33 +6,24 @@
 
 typedef union {
     struct super_block {
-        unsigned int posPrimerBloqueMB; // Absolute position of the first block
-                                        // of the bitmap
-        unsigned int posUltimoBloqueMB; // Absolute position of the last block
-                                        // of the bitmap
-        unsigned int posPrimerBloqueAI; // Absolute position of the first block
-                                        // of the inode array
-        unsigned int posUltimoBloqueAI; // Absolute position of the last block
-                                        // of the inode array
-        unsigned int
-            posPrimerBloqueDatos; // Absolute position of the first data block
-        unsigned int
-            posUltimoBloqueDatos; // Absolute position of the last data block
-        unsigned int
-            posInodoRaiz; // Root directory inode position (relative to the IM)
-        unsigned int posPrimerInodoLibre; // Posición del primer inodo libre
-                                          // (relativa al AI)
-        unsigned int
-            cantBloquesLibres; // Number of free blocks (on the whole disc)
-        unsigned int cantInodosLibres; // Number of free inodes (in the IM)
-        unsigned int totBloques;       // Total number of disc blocks
-        unsigned int totInodos;        // Total number of inodes (heuristic)
+        unsigned int posFirstBlockMB;   // Absolute position of the first block of the bitmap
+        unsigned int posLastBlockMB;    // Absolute position of the last block of the bitmap
+        unsigned int posFirstBlockAI;   // Absolute position of the first block of the inode array
+        unsigned int posLastBlockAI;    // Absolute position of the last block of the inode array
+        unsigned int posFirstBlockData; // Absolute position of the first data block
+        unsigned int posLastBlockData;  // Absolute position of the last data block
+        unsigned int posInodeRoot;      // Root directory inode position (relative to the IM)
+        unsigned int posFirstInodeFree; // Posición del primer inodo libre (relativa al AI)
+        unsigned int numBlocksFree;     // Number of free blocks (on the whole disc)
+        unsigned int numInodesFree;     // Number of free inodes (in the IM)
+        unsigned int allBlocks;         // Total number of disc blocks
+        unsigned int allInodes;         // Total number of inodes (heuristic)
     };
     char padding[BLOCKSIZE];
 } super_block_t;
 
 typedef union {
-    struct {
+    struct inode {
         unsigned char type;  // ('l':free, 'd':directory o 'f':file)
         unsigned char perms; // Permisos (read, write or execution)
 
@@ -52,8 +43,7 @@ typedef union {
         unsigned int num_blocks_busy; // Number of occupied blocks data area
 
         unsigned int direct_pointers[12];  // 12 direct block pointers
-        unsigned int undirect_pointers[3]; // 1 single indirect, 1 double
-                                           // indirect, 1 triple indirect
+        unsigned int undirect_pointers[3]; // 1 single indirect, 1 double indirect, 1 triple indirect
     };
     char padding[INODESIZE];
 } inode_t;
