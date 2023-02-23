@@ -1,10 +1,12 @@
-#include <stdio.h>
 #include "basic_file.h"
+#include <stdio.h>
 
 int main(int argc, char **argv) {
     // Check the possible errors in params
     if (argc < 3) {
-        fprintf(stderr, "Not enough arguments. Usage: %s <device name> <block size>\n", argv[0]);
+        fprintf(stderr,
+                "Not enough arguments. Usage: %s <device name> <block size>\n",
+                argv[0]);
 
         return FAILURE;
     }
@@ -26,7 +28,10 @@ int main(int argc, char **argv) {
     // Initialize the virtual device to all 0s
     for (int i = 0; i < n_blocks; i++) {
         if (bwrite(i, buffer) == FAILURE) {
-            fprintf(stderr, "An error occurred when writing to position %d of the virtual device.\n", i);
+            fprintf(stderr,
+                    "An error occurred when writing to position %d of the "
+                    "virtual device.\n",
+                    i);
 
             return FAILURE;
         }
