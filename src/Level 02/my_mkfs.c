@@ -1,4 +1,4 @@
-#include "basic_file.h"
+#include "basic_files.h"
 #include <stdio.h>
 
 int main(int argc, char **argv) {
@@ -13,10 +13,11 @@ int main(int argc, char **argv) {
 
     char *path = argv[1];
     int n_blocks = atoi(argv[2]);
+    int n_inodes = n_blocks / 4;
 
     // Initialize the buffer to all 0s
     unsigned char buffer[BLOCKSIZE];
-    void *memset_result = memset(buffer, 0, BLOCKSIZE);
+    void *memset_result = memset(buffer, 0, sizeof(buffer));
 
     // Mount the virtual device
     if (bmount(path) == FAILURE || !memset_result) {
@@ -28,13 +29,29 @@ int main(int argc, char **argv) {
     // Initialize the virtual device to all 0s
     for (int i = 0; i < n_blocks; i++) {
         if (bwrite(i, buffer) == FAILURE) {
-            fprintf(stderr,
-                    "An error occurred when writing to position %d of the "
-                    "virtual device.\n",
-                    i);
+            fprintf(stderr, "An error occurred when writing to position %d of the virtual device.\n", i);
 
             return FAILURE;
         }
+    }
+
+    // Metadata initialization
+    if (initSB(n_blocks, n_inodes) == FAILURE) {
+        fprintf(stderr, "Error generating superblock in virtual device.\n");
+
+        return FAILURE;
+    }
+
+    if (initMB() == FAILURE) {
+        fprintf(stderr, "Error in the generation of the virtual device bitmap.\n");
+        
+        return FAILURE;
+    }
+
+    if (initAI() == FAILURE) {
+        fprintf(stderr, "Error in generating the device inode array.\n");
+        
+        return FAILURE;
     }
 
     // Unmount the virtual device

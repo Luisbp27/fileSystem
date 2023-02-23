@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 
     // Initialize the buffer to all 0s
     unsigned char buffer[BLOCKSIZE];
-    void *memset_result = memset(buffer, 0, BLOCKSIZE);
+    void *memset_result = memset(buffer, 0, sizeof(buffer));
 
     // Mount the virtual device
     if (bmount(path) == FAILURE || !memset_result) {

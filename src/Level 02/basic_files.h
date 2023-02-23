@@ -1,11 +1,15 @@
 #include "blocks.h"
+#include <limits.h>
 
 #define posSB 0       // The SB is written in the first block of our file system
 #define sizeSB 1      // Unit: Blocks
 #define INODESIZE 128 // Size in bytes
+#define FREE 'l'
 
-typedef union {
-    struct super_block {
+typedef union
+{
+    struct
+    {
         unsigned int posFirstBlockMB;   // Absolute position of the first block of the bitmap
         unsigned int posLastBlockMB;    // Absolute position of the last block of the bitmap
         unsigned int posFirstBlockAI;   // Absolute position of the first block of the inode array
@@ -22,8 +26,10 @@ typedef union {
     char padding[BLOCKSIZE];
 } super_block_t;
 
-typedef union {
-    struct inode {
+typedef union
+{
+    struct
+    {
         unsigned char type;  // ('l':free, 'd':directory o 'f':file)
         unsigned char perms; // Permisos (read, write or execution)
 
@@ -47,3 +53,9 @@ typedef union {
     };
     char padding[INODESIZE];
 } inode_t;
+
+int sizeMB(unsigned int n_blocks);
+int sizeAI(unsigned int n_inodes);
+int initSB(unsigned int n_blocks, unsigned int n_inodes);
+int initMB();
+int initAI();
