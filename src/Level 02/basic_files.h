@@ -1,8 +1,8 @@
 #include "blocks.h"
 #include <limits.h>
 
-#define posSB 0       // The SB is written in the first block of our file system
-#define sizeSB 1      // Unit: Blocks
+#define POS_SB 0       // The SB is written in the first block of our file system
+#define SIZE_SB 1      // Unit: Blocks
 #define INODESIZE 128 // Size in bytes
 #define FREE 'l'
 
@@ -49,7 +49,7 @@ typedef union
         unsigned int num_blocks_busy; // Number of occupied blocks data area
 
         unsigned int direct_pointers[12];  // 12 direct block pointers
-        unsigned int undirect_pointers[3]; // 1 single indirect, 1 double indirect, 1 triple indirect
+        unsigned int indirect_pointers[3]; // 1 single indirect, 1 double indirect, 1 triple indirect
     };
     char padding[INODESIZE];
 } inode_t;

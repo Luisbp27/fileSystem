@@ -1,6 +1,7 @@
 #include "basic_files.h"
 #include <stdio.h>
 
+// Usage: ./my_mkfs <path to virtual device> <number of blocks to allocate>
 int main(int argc, char **argv) {
     // Check the possible errors in params
     if (argc < 3) {
@@ -42,17 +43,17 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
-    if (initMB() == FAILURE) {
-        fprintf(stderr, "Error in the generation of the virtual device bitmap.\n");
-        
-        return FAILURE;
-    }
-
-    if (initAI() == FAILURE) {
-        fprintf(stderr, "Error in generating the device inode array.\n");
-        
-        return FAILURE;
-    }
+    //if (initMB() == FAILURE) {
+    //    fprintf(stderr, "Error in the generation of the virtual device bitmap.\n");
+    //    
+    //    return FAILURE;
+    //}
+//
+    //if (initAI() == FAILURE) {
+    //    fprintf(stderr, "Error in generating the device inode array.\n");
+    //    
+    //    return FAILURE;
+    //}
 
     // Unmount the virtual device
     if (bumount() == FAILURE) {

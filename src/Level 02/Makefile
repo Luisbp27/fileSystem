@@ -2,10 +2,10 @@ CC=gcc
 CFLAGS=-c -g -Wall -Wextra -std=gnu99
 #LDFLAGS=-pthread
 
-SOURCES=blocks.c my_mkfs.c basic_files.c #ficheros.c leer_sf.c escribir.c leer.c truncar.c permitir.c directorios.c mi_mkdir.c mi_chmod.c mi_ls.c mi_link.c mi_escribir.c mi_cat.c mi_stat.c mi_rm.c semaforo_mutex_posix.c #simulacion.c verificacion.c
+SOURCES=blocks.c my_mkfs.c basic_files.c read_fs.c #ficheros.c escribir.c leer.c truncar.c permitir.c directorios.c mi_mkdir.c mi_chmod.c mi_ls.c mi_link.c mi_escribir.c mi_cat.c mi_stat.c mi_rm.c semaforo_mutex_posix.c #simulacion.c verificacion.c
 LIBRARIES=blocks.o basic_files.o #ficheros.o directorios.o semaforo_mutex_posix.o
 INCLUDES=blocks.h basic_files.h #ficheros.h directorios.h semaforo_mutex_posix.h #simulacion.h
-PROGRAMS=my_mkfs #leer_sf escribir leer truncar permitir mi_mkdir mi_chmod mi_ls mi_link mi_escribir mi_cat mi_stat mi_rm  #simulacion verificacion
+PROGRAMS=my_mkfs read_fs #escribir leer truncar permitir mi_mkdir mi_chmod mi_ls mi_link mi_escribir mi_cat mi_stat mi_rm  #simulacion verificacion
 OBJS=$(SOURCES:.c=.o)
 
 all: $(OBJS) $(PROGRAMS)
