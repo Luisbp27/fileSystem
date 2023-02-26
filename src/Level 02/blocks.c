@@ -84,13 +84,13 @@ int bread(unsigned int n_block, void *buffer) {
     }
 
     // Read the block
-    size_t bytes_written = read(descriptor, buffer, sizeof(buffer));
+    size_t bytes = read(descriptor, buffer, sizeof(buffer));
 
     // If the reading has gone wrong
-    if (bytes_written != sizeof(buffer)) {
+    if (bytes != sizeof(buffer)) {
         perror("Error when reading to the block");
         return FAILURE;
     }
 
-    return bytes_written;
+    return bytes;
 }

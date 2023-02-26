@@ -20,10 +20,11 @@ int sizeMB(unsigned int n_blocks) {
  *
  * @return Size of the inode array
  */
-int sizeAI(unsigned int n_inodes) {
+int sizeAI(unsigned int n_blocks) {
+    int n_inodes = n_blocks / 4;
     int size_ai = (n_inodes * INODESIZE) / BLOCKSIZE;
 
-    if ((n_inodes * INODESIZE) % BLOCKSIZE > 0) {
+    if (((n_inodes / 4) * INODESIZE) % BLOCKSIZE > 0) {
         size_ai++;
     }
 
