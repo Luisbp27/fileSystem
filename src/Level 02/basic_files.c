@@ -20,11 +20,11 @@ int sizeMB(unsigned int n_blocks) {
  *
  * @return Size of the inode array
  */
-int sizeAI(unsigned int n_blocks) {
-    int n_inodes = n_blocks / 4;
-    int size_ai = (n_inodes * INODESIZE) / BLOCKSIZE;
+int sizeAI(unsigned int n_inodes) {
+    int inode_bytes = (n_inodes * INODESIZE);
+    int size_ai = inode_bytes / BLOCKSIZE;
 
-    if (((n_inodes / 4) * INODESIZE) % BLOCKSIZE > 0) {
+    if (inode_bytes % BLOCKSIZE > 0) {
         size_ai++;
     }
 
@@ -33,7 +33,7 @@ int sizeAI(unsigned int n_blocks) {
 
 int initSB(unsigned int n_blocks, unsigned int n_inodes) {
     super_block_t sb;
-    
+
     // Position of the first block in the bitmap
     sb.posFirstBlockMB = POS_SB + SIZE_SB;
     // Position of the last block in the bitmap
@@ -41,7 +41,7 @@ int initSB(unsigned int n_blocks, unsigned int n_inodes) {
     // Position of the first block in the inode array
     sb.posFirstBlockAI = sb.posLastBlockMB + 1;
     // Position of the last block in the inode array
-    sb.posLastBlockAI = sb.posFirstBlockAI + sizeAI(n_blocks) - 1;
+    sb.posLastBlockAI = sb.posFirstBlockAI + sizeAI(n_inodes) - 1;
     // Position of the first data block
     sb.posFirstBlockData = sb.posLastBlockAI + 1;
     // Position of the last data block
@@ -88,10 +88,16 @@ int initMB() {
         return FAILURE;
     }
 
-    unsigned int metadata_blocks = sb.posLastBlockMB + 1;       // Number of blocks occupied by metadata
-    unsigned int all_ones_bytes = metadata_blocks / 8;          // Number of bytes set to all 1s because their 8 blocks are used for metadata
-    unsigned int full_ones_blocks = all_ones_bytes / BLOCKSIZE; // Number of blocks set to all 1s
-    unsigned int partial_ones = metadata_blocks % 8;            // Number of bits corresponding to a metadata block that can't be grouped in a byte
+    unsigned int metadata_blocks =
+        sb.posLastBlockMB + 1; // Number of blocks occupied by metadata
+    unsigned int all_ones_bytes =
+        metadata_blocks / 8; // Number of bytes set to all 1s because their 8
+                             // blocks are used for metadata
+    unsigned int full_ones_blocks =
+        all_ones_bytes / BLOCKSIZE; // Number of blocks set to all 1s
+    unsigned int partial_ones =
+        metadata_blocks % 8; // Number of bits corresponding to a metadata block
+                             // that can't be grouped in a byte
 
     unsigned char buffer[BLOCKSIZE];
 
@@ -107,7 +113,8 @@ int initMB() {
         }
     }
 
-    // Reuse 1s set in the previous memset, and set the trailing 0s that are needed
+    // Reuse 1s set in the previous memset, and set the trailing 0s that are
+    // needed
     if (!memset(&buffer[all_ones_bytes], 0, sizeof(buffer) - all_ones_bytes)) {
         perror("Bitmap initialization has not been done correctly");
         return FAILURE;
@@ -125,14 +132,14 @@ int initMB() {
 }
 
 int initAI() {
-    inode_t inodes [BLOCKSIZE / INODESIZE];
+    inode_t inodes[BLOCKSIZE / INODESIZE];
 
     super_block_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
         return FAILURE;
     }
-    
-    unsigned int inode_counter = sb.posFirstInodeFree + 1; 
+
+    unsigned int inode_counter = sb.posFirstInodeFree + 1;
 
     for (unsigned int i = sb.posFirstBlockAI; i <= sb.posLastBlockAI; i++) {
         // Read the inode block from the filesystem
