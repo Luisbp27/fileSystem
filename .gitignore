@@ -1,7 +1,7 @@
 *.o
 *.exe
 
-# Proramas
+# Programas
 my_mkfs
 leer_sf
 escribir
@@ -18,3 +18,7 @@ mi_stat
 mi_rm
 simulacion
 verificacion
+
+# Datos
+disco
+disk
