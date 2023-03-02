@@ -1,13 +1,12 @@
 #include "blocks.h"
 #include <limits.h>
 
-#define POS_SB 0       // The SB is written in the first block of our file system
-#define SIZE_SB 1      // Unit: Blocks
+#define POS_SB 0      // The SB is written in the first block of our file system
+#define SIZE_SB 1     // Unit: Blocks
 #define INODESIZE 128 // Size in bytes
 #define FREE 'l'
 
-typedef union
-{
+typedef union {
     struct
     {
         unsigned int posFirstBlockMB;   // Absolute position of the first block of the bitmap
@@ -26,8 +25,7 @@ typedef union
     char padding[BLOCKSIZE];
 } super_block_t;
 
-typedef union
-{
+typedef union {
     struct
     {
         unsigned char type;  // ('l':free, 'd':directory o 'f':file)

@@ -59,20 +59,6 @@ int initSB(unsigned int n_blocks, unsigned int n_inodes) {
     // Total number of inodes
     sb.allInodes = n_inodes;
 
-    printf("SUPERBLOCK DATA\n");
-    printf("posFirstBlockMB = %u\n", sb.posFirstBlockMB);
-    printf("posLastBlockMB = %u\n", sb.posLastBlockMB);
-    printf("posFirstBlockAI = %u\n", sb.posFirstBlockAI);
-    printf("posLastBlockAI = %u\n", sb.posLastBlockAI);
-    printf("posFirstBlockData = %u\n", sb.posFirstBlockData);
-    printf("posLastBlockData = %u\n", sb.posLastBlockData);
-    printf("posInodeRoot = %u\n", sb.posInodeRoot);
-    printf("posFirstInodeFree = %u\n", sb.posFirstInodeFree);
-    printf("numBlocksFree = %u\n", sb.numBlocksFree);
-    printf("numInodesFree = %u\n", sb.numInodesFree);
-    printf("allBlocks = %u\n", sb.allBlocks);
-    printf("allInodes = %u\n", sb.allInodes);
-
     // Write de sb on the filesystem
     if (bwrite(POS_SB, &sb) == FAILURE) {
         return FAILURE;
@@ -87,17 +73,14 @@ int initMB() {
     if (bread(POS_SB, &sb) == FAILURE) {
         return FAILURE;
     }
-
-    unsigned int metadata_blocks =
-        sb.posLastBlockMB + 1; // Number of blocks occupied by metadata
-    unsigned int all_ones_bytes =
-        metadata_blocks / 8; // Number of bytes set to all 1s because their 8
-                             // blocks are used for metadata
-    unsigned int full_ones_blocks =
-        all_ones_bytes / BLOCKSIZE; // Number of blocks set to all 1s
-    unsigned int partial_ones =
-        metadata_blocks % 8; // Number of bits corresponding to a metadata block
-                             // that can't be grouped in a byte
+    // Number of blocks occupied by metadata
+    unsigned int metadata_blocks = sb.posLastBlockMB + 1;
+    // Number of bytes set to all 1s because their 8 bits are used for metadata
+    unsigned int all_ones_bytes = metadata_blocks / 8;
+    // Number of blocks set to all 1s
+    unsigned int full_ones_blocks = all_ones_bytes / BLOCKSIZE;
+    // Number of bits corresponding to a metadata block that can't be grouped in a byte
+    unsigned int partial_ones = metadata_blocks % 8;
 
     unsigned char buffer[BLOCKSIZE];
 

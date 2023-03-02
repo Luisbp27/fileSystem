@@ -26,7 +26,7 @@ int main(int argc, char const *argv[]) {
         fprintf(stderr, "Error reading the superblock.\n");
         return FAILURE;
     }
-    
+
     // Visualization of the superblock content
     printf("SUPERBLOCK DATA\n");
     printf("posFirstBlockMB = %u\n", sb.posFirstBlockMB);
@@ -43,16 +43,16 @@ int main(int argc, char const *argv[]) {
     printf("allInodes = %u\n", sb.allInodes);
 
     // Visualization of the inode size
-    printf ("Size of superblock type: %lu\n", sizeof(super_block_t));
-    printf ("Size of inode type: %lu\n", sizeof(inode_t));
-    
+    printf("Size of superblock type: %lu\n", sizeof(super_block_t));
+    printf("Size of inode type: %lu\n", sizeof(inode_t));
+
     // Visualization of the linked list of free inodes
     printf("LINKED LIST OF FREE INODES\n");
+
     inode_t inodes[BLOCKSIZE / INODESIZE];
-    
     for (unsigned int i = sb.posFirstBlockAI; i <= sb.posLastBlockAI; i++) {
         // Reading the inode block
-        if (bwrite(i, &inodes)== FAILURE) {
+        if (bread(i, &inodes) == FAILURE) {
             return FAILURE;
         }
 
