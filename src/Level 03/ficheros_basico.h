@@ -1,5 +1,6 @@
 #include "bloques.h"
 #include <limits.h>
+#include <time.h>
 
 #define POS_SB 0      // The SB is written in the first block of our file system
 #define TAM_SB 1      // Unit: Blocks
@@ -65,4 +66,3 @@ int liberar_bloque(unsigned int nbloque);
 int escribir_inodo(unsigned int ninodo, inodo_t *inodo);
 int leer_inodo(unsigned int ninodo, inodo_t *inodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);
-

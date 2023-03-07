@@ -3,6 +3,8 @@
 /**
  * This method calculates the size in blocks required for the bitmap
  *
+ * @param nbloques
+ *
  * @return  Size in blocks of the bitmap
  */
 int tamMB(unsigned int nbloques) {
@@ -18,6 +20,8 @@ int tamMB(unsigned int nbloques) {
 /**
  * This method calculates the block size of the inode array.
  *
+ * @param ninodos
+ *
  * @return Size of the inode array
  */
 int tamAI(unsigned int ninodos) {
@@ -31,6 +35,14 @@ int tamAI(unsigned int ninodos) {
     return size_ai;
 }
 
+/**
+ * This method initialize the superblock data
+ *
+ * @param nbloques
+ * @param ninodos
+ *
+ * @return -1 if there was an error, 0 otherwise
+*/
 int initSB(unsigned int nbloques, unsigned int ninodos) {
     super_bloque_t sb;
 
@@ -67,12 +79,18 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
     return SUCCESS;
 }
 
+/**
+ * This method initialize the bitmap
+ *
+ * @return -1 if there was an error, 0 otherwise
+*/
 int initMB() {
-    super_bloque_t sb;
     // Reading the sb
+    super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
         return FAILURE;
     }
+
     // Number of blocks occupied by metadata
     unsigned int metadata_blocks = sb.posUltimoBloqueMB + 1;
     // Number of bytes set to all 1s because their 8 bits are used for metadata
@@ -96,8 +114,7 @@ int initMB() {
         }
     }
 
-    // Reuse 1s set in the previous memset, and set the trailing 0s that are
-    // needed
+    // Reuse 1s set in the previous memset, and set the trailing 0s that are needed
     if (!memset(&buffer[all_ones_bytes], 0, sizeof(buffer) - all_ones_bytes)) {
         perror("Bitmap initialization has not been done correctly");
         return FAILURE;
@@ -114,6 +131,11 @@ int initMB() {
     return SUCCESS;
 }
 
+/**
+ * This method initialize the inode array
+ *
+ * @return -1 if there was an error, 0 otherwise
+*/
 int initAI() {
     inodo_t inodes[BLOCKSIZE / INODESIZE];
 
@@ -149,7 +171,7 @@ int initAI() {
 
 /**
  * Calculates the necessary values to read or write a byte.
- * 
+ *
  * @param nbloque Block whose MB we want to read.
  * @param posbyte (return value) Position of the byte inside the MB block
  * @param posbit (return value) Position of the bit inside the byte
@@ -165,7 +187,7 @@ int calc_bit(unsigned int nbloque, unsigned int *posbyte, unsigned int *posbit, 
 
     *posbyte = nbloque / 8; // posición absoluta del byte que conteiene el bit del MB
     *posbit = nbloque % 8; // posición del bit a modificar dentro del byte
-    
+
     unsigned int nbloqueMB = *posbyte / BLOCKSIZE; // posición del bloque relativa al comienzo del MB
     *nbloqueabs = sb.posPrimerBloqueMB + nbloqueMB; // posición absoluta del bloque
 
@@ -187,12 +209,12 @@ int escribir_bit(unsigned int nbloque, unsigned int bit) {
     if (calc_bit(nbloque, &posbyte, &posbit, &nbloqueabs) == FAILURE) {
         return FAILURE;
     }
-    
+
     unsigned char buffer[BLOCKSIZE];
     if (bread(nbloqueabs, &buffer) == FAILURE) {
         return FAILURE;
     }
-    
+
     unsigned char mascara = 0b10000000 >> posbit;
 
     if (bit == 0) {
@@ -224,7 +246,7 @@ char leer_bit(unsigned int nbloque) {
     if (calc_bit(nbloque, &posbyte, &posbit, &nbloqueabs) == FAILURE) {
         return FAILURE;
     }
-    
+
     unsigned char buffer[BLOCKSIZE];
     if (bread(nbloqueabs, &buffer) == FAILURE) {
         return FAILURE;
@@ -233,14 +255,14 @@ char leer_bit(unsigned int nbloque) {
     unsigned char mascara = 0b10000000 >> posbit;
     unsigned char result = mascara & buffer[posbyte];
     result >>= (7 - posbit);
-    
+
     return result;
 }
 
 /**
- * This method finds the first free block, queries the MB, 
+ * This method finds the first free block, queries the MB,
  * occupies it and returns its position.
- * 
+ *
  * @return The position of block, or -1 if there was an error.
 */
 int reservar_bloque() {
@@ -266,7 +288,7 @@ int reservar_bloque() {
 
     // Locate the first free block
     int found = 0;
-    while(found != 1) {
+    while(found == 0) {
         if (bread(posBloqueMB, bufferMB) == FAILURE) {
             return FAILURE;
         }
@@ -275,7 +297,7 @@ int reservar_bloque() {
             found = 1;
             break;
         }
-        
+
         posBloqueMB++;
     }
 
@@ -317,6 +339,13 @@ int reservar_bloque() {
     return nbloque;
 }
 
+/**
+ * This method frees a given block (with the help of the function write_bit())
+ *
+ * @param nbloque
+ *
+ * @return Position of the free block
+*/
 int liberar_bloque(unsigned int nbloque) {
     // Reading the superblock
     super_bloque_t sb;
@@ -326,7 +355,7 @@ int liberar_bloque(unsigned int nbloque) {
 
     escribir_bit(nbloque, 0);
     sb.cantBloquesLibres++;
-    
+
     // Save the superblock
     if (bwrite(POS_SB, &sb) == FAILURE) {
         return FAILURE;
@@ -335,6 +364,15 @@ int liberar_bloque(unsigned int nbloque) {
     return nbloque;
 }
 
+/**
+ * This method writes the contents of a struct variable of type struct inode to a given
+ * inode in the array of inodes, inodes. particular inode of the array of inodes, inodes.
+ *
+ * @param ninodo
+ * @param inodo
+ *
+ * @return -1 if there was an error, 0 otherwise
+*/
 int escribir_inodo(unsigned int ninodo, inodo_t *inodo) {
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
@@ -343,16 +381,17 @@ int escribir_inodo(unsigned int ninodo, inodo_t *inodo) {
 
     // Find the inode inside the AI
     unsigned int posBloqueAI = sb.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / INODESIZE));
-    
-    // Reading inode
-    inodo_t inodos_buffer[BLOCKSIZE / BLOCKSIZE];
+
+    // Reading inode array
+    inodo_t inodos_buffer[BLOCKSIZE / INODESIZE];
     if (bread(posBloqueAI, inodos_buffer) == FAILURE) {
         return FAILURE;
     }
 
-    inodos_buffer[ninodo % (BLOCKSIZE / BLOCKSIZE)] = *inodo;
+    // Writing the inode in the corresponding position
+    inodos_buffer[ninodo % (BLOCKSIZE / INODESIZE)] = *inodo;
 
-    inodo_t inodos_buffer[BLOCKSIZE / BLOCKSIZE];
+    // Modifying the virtual device
     if (bwrite(posBloqueAI, inodos_buffer) == FAILURE) {
         return FAILURE;
     }
@@ -360,13 +399,22 @@ int escribir_inodo(unsigned int ninodo, inodo_t *inodo) {
     return SUCCESS;
 }
 
+/**
+ * This method reads a given inode from the array of inodes to dump it into a struct
+ * inode variable passed by reference.
+ *
+ * @param ninodo
+ * @param inodo
+ *
+ * @return -1 if there was an error, 0 otherwise
+*/
 int leer_inodo(unsigned int ninodo, inodo_t *inodo) {
     // Reading the superblock
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
         return FAILURE;
     }
-    
+
     // Find the inode inside the AI
     unsigned int posBloqueAI = sb.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / INODESIZE));
 
@@ -382,6 +430,54 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo) {
     return SUCCESS;
 }
 
+/**
+ * This method finds the first free inode (data stored in the superblock),
+ * reserves it (with the help of the function write_inodo())
+ *
+ * @param tipo
+ * @param permisos
+ *
+ * @return Returns the position of the reserved inode
+*/
 int reservar_inodo(unsigned char tipo, unsigned char permisos) {
-    
+    // Reading the superblock
+    super_bloque_t sb;
+    if (bread(POS_SB, &sb) == FAILURE) {
+        return FAILURE;
+    }
+
+    // Checking the free inodes available
+    if (sb.cantInodosLibres == 0) {
+        return FAILURE;
+    }
+
+    unsigned int posInodoReservado = sb.posPrimerInodoLibre;
+
+    // Initialize inode with default values
+    inodo_t inodo = {
+      .tipo = tipo,
+      .permisos = permisos,
+      .nlinks = 1,
+      .tamEnBytesLog = 0,
+      .atime = time(NULL),
+      .mtime = time(NULL),
+      .ctime = time(NULL),
+      .numBloquesOcupados = 0,
+      .punterosDirectos = {0},
+      .punterosIndirectos = {0},
+    };
+
+    if (escribir_inodo(posInodoReservado, &inodo) == FAILURE) {
+        return FAILURE;
+    }
+
+    // Mark the next inode as free and decrease the amount of free enodes
+    sb.posPrimerInodoLibre++;
+    sb.cantInodosLibres--;
+
+    if (bwrite(POS_SB, &sb) == FAILURE) {
+        return FAILURE;
+    }
+
+    return posInodoReservado;
 }
