@@ -79,6 +79,11 @@ int main(int argc, char const *argv[]) {
         return FAILURE;
     }
     printf("Cantidad de bloques libres: %u\n", sb.cantBloquesLibres);
+
+    liberar_bloque(pos);
+    if (bread(POS_SB, &sb) == FAILURE) {
+        return FAILURE;
+    }
     printf("Liberamos ese bloque y después sb.cantidadBloquesLibres: %u\n", sb.cantBloquesLibres);
 
     printf("\nMAPA DE BITS\n");
@@ -95,7 +100,7 @@ int main(int argc, char const *argv[]) {
         leer_bit(sb.posPrimerBloqueDatos),
         leer_bit(sb.posUltimoBloqueDatos)
     );
-    printf("| S |    MB   |    AI   |    D     |\n");
+    printf("| S |    MB   |    AI   |    D    |\n");
 
     printf("\nDATOS DEL DIRECTORIO RAIZ\n");
 

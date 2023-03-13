@@ -71,12 +71,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
     // Total number of inodes
     sb.totInodos = ninodos;
 
-    // Write de sb on the filesystem
-    if (bwrite(POS_SB, &sb) == FAILURE) {
-        return FAILURE;
-    }
-
-    return SUCCESS;
+    return bwrite(POS_SB, &sb);
 }
 
 /**
@@ -85,47 +80,29 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
  * @return -1 if there was an error, 0 otherwise
 */
 int initMB() {
-    // Reading the sb
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
         return FAILURE;
     }
 
-    // Number of blocks occupied by metadata
-    unsigned int metadata_blocks = sb.posUltimoBloqueMB + 1;
-    // Number of bytes set to all 1s because their 8 bits are used for metadata
-    unsigned int all_ones_bytes = metadata_blocks / 8;
-    // Number of blocks set to all 1s
-    unsigned int full_ones_blocks = all_ones_bytes / BLOCKSIZE;
-    // Number of bits corresponding to a metadata block that can't be grouped in a byte
-    unsigned int partial_ones = metadata_blocks % 8;
-
     unsigned char buffer[BLOCKSIZE];
 
-    if (!memset(buffer, UCHAR_MAX, sizeof(buffer))) {
-        perror("Bitmap initialization has not been done correctly");
+    if (!memset(buffer, 0, sizeof(buffer))) {
         return FAILURE;
     }
 
-    for (unsigned int i = 0; i < full_ones_blocks; i++) {
-        if (bwrite(sb.posPrimerBloqueMB + i * BLOCKSIZE, buffer) == FAILURE) {
-            fprintf(stderr, "Could not initialize bitmap");
+    // Initialize the MB to all 0s (nothing is reserved)
+    for (int i = sb.posPrimerBloqueMB; i <= sb.posUltimoBloqueAI; i++) {
+        if (bwrite(i, buffer) == FAILURE) {
             return FAILURE;
         }
     }
-
-    // Reuse 1s set in the previous memset, and set the trailing 0s that are needed
-    if (!memset(&buffer[all_ones_bytes], 0, sizeof(buffer) - all_ones_bytes)) {
-        perror("Bitmap initialization has not been done correctly");
-        return FAILURE;
-    }
-
-    unsigned char bits_left = UCHAR_MAX << (8 - partial_ones);
-    buffer[all_ones_bytes] = bits_left;
-
-    if (bwrite(sb.posPrimerBloqueMB + full_ones_blocks, buffer) == FAILURE) {
-        fprintf(stderr, "Could not initialize bitmap");
-        return FAILURE;
+    
+    // Set the metadata blocks as reserved in the MB
+    for (int i = 0; i < sb.posPrimerBloqueDatos; i++) {
+        if (reservar_bloque() == FAILURE) {
+            return FAILURE;
+        }
     }
 
     return SUCCESS;
@@ -145,8 +122,9 @@ int initAI() {
     }
 
     unsigned int inode_counter = sb.posPrimerInodoLibre + 1;
-
-    for (unsigned int i = sb.posPrimerBloqueAI; i <= sb.posUltimoBloqueAI; i++) {
+    int end = 0;
+    
+    for (unsigned int i = sb.posPrimerBloqueAI; i <= sb.posUltimoBloqueAI && !end; i++) {
         // Read the inode block from the filesystem
         for (int j = 0; j < BLOCKSIZE / INODESIZE; j++) {
             inodes[j].tipo = FREE;
@@ -156,6 +134,7 @@ int initAI() {
                 inode_counter++;
             } else {
                 inodes[j].punterosIndirectos[0] = UINT_MAX;
+                end = 1;
                 break;
             }
         }
@@ -292,7 +271,7 @@ int reservar_bloque() {
 
     // Locate the first free block
     int found = 0;
-    while(found == 0) {
+    while(!found) {
         if (bread(posBloqueMB, bufferMB) == FAILURE) {
             return FAILURE;
         }
@@ -330,11 +309,6 @@ int reservar_bloque() {
     // Decrement the number of free blocks
     sb.cantBloquesLibres--;
 
-    // Fill the buffer with 0s to prevent trash on memory
-    if (!memset(bufferAux, 0, BLOCKSIZE)) {
-        return FAILURE;
-    }
-
     // Save the superblock
     if (bwrite(POS_SB, &sb) == FAILURE) {
         return FAILURE;
@@ -357,7 +331,10 @@ int liberar_bloque(unsigned int nbloque) {
         return FAILURE;
     }
 
-    escribir_bit(nbloque, 0);
+    if (escribir_bit(nbloque, 0) == FAILURE) {
+        return FAILURE;
+    }
+
     sb.cantBloquesLibres++;
 
     // Save the superblock
