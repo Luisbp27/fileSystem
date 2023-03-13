@@ -160,7 +160,7 @@ int initAI() {
             }
         }
 
-        // Write the inode block and in the FS
+        // Write the inode block in the virtual device
         if (bwrite(i, &inodes) == FAILURE) {
             return FAILURE;
         }
@@ -215,16 +215,20 @@ int escribir_bit(unsigned int nbloque, unsigned int bit) {
         return FAILURE;
     }
 
+    // Mask and set the bit scrolling
     unsigned char mascara = 0b10000000 >> posbit;
 
     if (bit == 0) {
+        // AND and NOT operators
         buffer[posbyte] &= ~mascara;
-    } else if (bit == 0) {
+    } else if (bit == 1) {
+        // OR operator
         buffer[posbyte] |= mascara;
     } else {
         return FAILURE;
     }
 
+    // Writting buffer inside the virtual device
     if (bwrite(nbloqueabs, &buffer) == FAILURE) {
         return FAILURE;
     }
