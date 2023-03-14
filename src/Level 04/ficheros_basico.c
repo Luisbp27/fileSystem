@@ -464,7 +464,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
 }
 
 /**
- * This method obtain the range of pointers in which the logical block 
+ * This method obtains the range of pointers in which the logical block 
  * we are looking for is located. and we also obtain the address stored 
  * in the corresponding pointer of the inode.
  * 
@@ -479,14 +479,17 @@ int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr) {
         *ptr = inodo->punterosDirectos[nblogico];
         return 0;
     }
+
     if (nblogico < INDIRECTOS0) {
         *ptr = inodo->punterosIndirectos[0];
         return 1;
     }
+
     if (nblogico < INDIRECTOS1) {
         *ptr = inodo->punterosIndirectos[1];
         return 2;
     }
+
     if (nblogico < INDIRECTOS2) {
         *ptr = inodo->punterosIndirectos[2];
         return 3;
@@ -502,7 +505,7 @@ int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr) {
  * @param nblogico
  * @param nivel_punteros
  * 
- * @return
+ * @return Índice del bloque de punteros
 */
 int obtener_indice(unsigned int nblogico, int nivel_punteros) {
     if (nblogico < DIRECTOS) {
@@ -534,7 +537,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros) {
         }
     }
 
-    //Si nblogico > INDIRECTOS2, es un error y devolvemos -1 porque no podemos tratarlo.
+    // If nblogico > INDIRECTOS2, its an error and return FAILURE
     return FAILURE;
 }
 
@@ -586,6 +589,7 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                             "[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
                             nivel_punteros, indice, ptr, ptr, nivel_punteros);
                     #endif
+                    
                     if (bwrite(ptr_ant, buffer) == FAILURE) {
                         return FAILURE;
                     }
