@@ -206,7 +206,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
  * 
  * @return Meta-information of a file/directory (corresponding to the inode number passed as argument)
 */
-int mi_stat_f(unsigned int ninodo, stat_t *p_stat) {
+int mi_stat_f(unsigned int ninodo, struct stat *p_stat) {
 
     inodo_t inodo;
     leer_inodo(ninodo, &inodo);
