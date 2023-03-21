@@ -1,8 +1,10 @@
+.vscode
+
 *.o
 *.exe
 
 # Programas
-my_mkfs
+mi_mkfs
 leer_sf
 escribir
 leer
