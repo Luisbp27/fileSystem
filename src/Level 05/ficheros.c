@@ -12,6 +12,8 @@
 */
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes) {
     inodo_t inodo;
+    leer_inodo(ninodo, &inodo);
+    
     unsigned int primerBL = offset / BLOCKSIZE;
     unsigned int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
     unsigned int desp1 = offset % BLOCKSIZE;
@@ -206,7 +208,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
  * 
  * @return Meta-information of a file/directory (corresponding to the inode number passed as argument)
 */
-int mi_stat_f(unsigned int ninodo, struct stat *p_stat) {
+int mi_stat_f(unsigned int ninodo, struct STAT *p_stat) {
 
     inodo_t inodo;
     leer_inodo(ninodo, &inodo);

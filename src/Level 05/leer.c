@@ -12,18 +12,19 @@ int main(int argc, char *argv[]) {
     unsigned int offset = 0;
 
     // Checking syntax
-    if(argv[1] == NULL || argv[2] == NULL ){  
+    if(argv[1] == NULL || argv[2] == NULL ) {  
         fprintf(stderr,"Command syntax should be: leer <nombre_dispositivo> <nº inodo>\n");
         return FAILURE;
+    }
 
     // Mounting the virtual device
-    if (bmount(argv[1]) == FAILURE){
+    if (bmount(argv[1]) == FAILURE) {
         fprintf(stderr,"Error while mounting the virtual device\n");
         return FAILURE;
     }
 
     // Cleaning the buffer, filling it with 0s
-    if(memset(buffer_texto, 0, tam_buffer) == NULL){
+    if(memset(buffer_texto, 0, tam_buffer) == NULL) {
         fprintf(stderr, "Error while setting memory\n");
         return FAILURE;
     }
