@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
         return FAILURE;
     }
 
-    // Filling the buffer with 0s
+    // Cleaning the buffer, filling it with 0s
     if(memset(buffer_texto, 0, tam_buffer) == NULL){
         fprintf(stderr, "Error while setting memory\n");
         return FAILURE;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         return FAILURE;
     }
 
-    printf("\n Total bytes leidos: %u\n", bytes_leidos);
+    printf("\n\nTotal bytes leidos: %u\n", bytes_leidos);
     printf("tamEnBytesLog: %u\n", inodo.tamEnBytesLog);
 
     if (bumount() == FAILURE) {
