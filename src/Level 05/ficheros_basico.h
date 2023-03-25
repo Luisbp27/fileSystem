@@ -10,11 +10,11 @@
 #define INODESIZE 128 // Size in bytes
 #define FREE 'l'
 
-#define NPUNTEROS (BLOCKSIZE/sizeof(unsigned int)) // 256
+#define NPUNTEROS (BLOCKSIZE / sizeof(unsigned int)) // 256
 #define DIRECTOS 12
-#define INDIRECTOS0 (NPUNTEROS + DIRECTOS)                              // 1 nivel (268)
-#define INDIRECTOS1 (NPUNTEROS * NPUNTEROS + INDIRECTOS0)               // 2 niveles (65804)
-#define INDIRECTOS2 (NPUNTEROS * NPUNTEROS * NPUNTEROS + INDIRECTOS1)   // 3 niveles (16843020)
+#define INDIRECTOS0 (NPUNTEROS + DIRECTOS)                            // 1 nivel (268)
+#define INDIRECTOS1 (NPUNTEROS * NPUNTEROS + INDIRECTOS0)             // 2 niveles (65804)
+#define INDIRECTOS2 (NPUNTEROS * NPUNTEROS * NPUNTEROS + INDIRECTOS1) // 3 niveles (16843020)
 
 typedef union {
     struct
