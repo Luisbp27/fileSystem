@@ -42,7 +42,7 @@ int tamAI(unsigned int ninodos) {
  * @param ninodos
  *
  * @return -1 if there was an error, 0 otherwise
-*/
+ */
 int initSB(unsigned int nbloques, unsigned int ninodos) {
     super_bloque_t sb;
 
@@ -78,7 +78,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
  * This method initialize the bitmap
  *
  * @return -1 if there was an error, 0 otherwise
-*/
+ */
 int initMB() {
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
@@ -97,7 +97,7 @@ int initMB() {
             return FAILURE;
         }
     }
-    
+
     // Set the metadata blocks as reserved in the MB
     for (int i = 0; i < sb.posPrimerBloqueDatos; i++) {
         if (reservar_bloque() == FAILURE) {
@@ -112,7 +112,7 @@ int initMB() {
  * This method initialize the inode array
  *
  * @return -1 if there was an error, 0 otherwise
-*/
+ */
 int initAI() {
     inodo_t inodes[BLOCKSIZE / INODESIZE];
 
@@ -123,7 +123,7 @@ int initAI() {
 
     unsigned int inode_counter = sb.posPrimerInodoLibre + 1;
     int end = 0;
-    
+
     for (unsigned int i = sb.posPrimerBloqueAI; i <= sb.posUltimoBloqueAI && !end; i++) {
         // Read the inode block from the filesystem
         for (int j = 0; j < BLOCKSIZE / INODESIZE; j++) {
@@ -157,7 +157,7 @@ int initAI() {
  * @param nbloqueabs (return value) Absolute position of the block
  *
  * @return -1 if there was an error, 0 otherwise
-*/
+ */
 int calc_bit(unsigned int nbloque, unsigned int *posbyte, unsigned int *posbit, unsigned int *nbloqueabs) {
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
@@ -165,9 +165,9 @@ int calc_bit(unsigned int nbloque, unsigned int *posbyte, unsigned int *posbit, 
     }
 
     *posbyte = nbloque / 8; // posición absoluta del byte que conteiene el bit del MB
-    *posbit = nbloque % 8; // posición del bit a modificar dentro del byte
+    *posbit = nbloque % 8;  // posición del bit a modificar dentro del byte
 
-    unsigned int nbloqueMB = *posbyte / BLOCKSIZE; // posición del bloque relativa al comienzo del MB
+    unsigned int nbloqueMB = *posbyte / BLOCKSIZE;  // posición del bloque relativa al comienzo del MB
     *nbloqueabs = sb.posPrimerBloqueMB + nbloqueMB; // posición absoluta del bloque
 
     *posbyte = *posbyte % BLOCKSIZE; // posición del byte dentro del bloque leído
@@ -182,7 +182,7 @@ int calc_bit(unsigned int nbloque, unsigned int *posbyte, unsigned int *posbit, 
  * @param bit
  *
  * @return -1 if there was an error, 0 otherwise
-*/
+ */
 int escribir_bit(unsigned int nbloque, unsigned int bit) {
     unsigned int posbyte, posbit, nbloqueabs;
     if (calc_bit(nbloque, &posbyte, &posbit, &nbloqueabs) == FAILURE) {
@@ -215,7 +215,6 @@ int escribir_bit(unsigned int nbloque, unsigned int bit) {
     return SUCCESS;
 }
 
-
 /**
  * Reads the bit in the MB bit corresponding tho the block `nbloque`
  *
@@ -223,7 +222,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit) {
  * @param bit
  *
  * @return -1 if there was an error, the value of the bit otherwise
-*/
+ */
 char leer_bit(unsigned int nbloque) {
     unsigned int posbyte, posbit, nbloqueabs;
     if (calc_bit(nbloque, &posbyte, &posbit, &nbloqueabs) == FAILURE) {
@@ -247,7 +246,7 @@ char leer_bit(unsigned int nbloque) {
  * occupies it and returns its position.
  *
  * @return The position of block, or -1 if there was an error.
-*/
+ */
 int reservar_bloque() {
     // Reading the superblock of the virtual device
     super_bloque_t sb;
@@ -271,7 +270,7 @@ int reservar_bloque() {
 
     // Locate the first free block
     int found = 0;
-    while(!found) {
+    while (!found) {
         if (bread(posBloqueMB, bufferMB) == FAILURE) {
             return FAILURE;
         }
@@ -323,7 +322,7 @@ int reservar_bloque() {
  * @param nbloque
  *
  * @return Position of the free block
-*/
+ */
 int liberar_bloque(unsigned int nbloque) {
     // Reading the superblock
     super_bloque_t sb;
@@ -353,7 +352,7 @@ int liberar_bloque(unsigned int nbloque) {
  * @param inodo
  *
  * @return -1 if there was an error, 0 otherwise
-*/
+ */
 int escribir_inodo(unsigned int ninodo, inodo_t *inodo) {
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
@@ -388,7 +387,7 @@ int escribir_inodo(unsigned int ninodo, inodo_t *inodo) {
  * @param inodo
  *
  * @return -1 if there was an error, 0 otherwise
-*/
+ */
 int leer_inodo(unsigned int ninodo, inodo_t *inodo) {
     // Reading the superblock
     super_bloque_t sb;
@@ -406,7 +405,7 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo) {
     }
 
     // Writing inode in it's position in the array
-    *inodo = inodos_buffer[ninodo % (BLOCKSIZE / BLOCKSIZE)];
+    *inodo = inodos_buffer[ninodo % (BLOCKSIZE / INODESIZE)];
 
     return SUCCESS;
 }
@@ -419,7 +418,7 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo) {
  * @param permisos
  *
  * @return Returns the position of the reserved inode
-*/
+ */
 int reservar_inodo(unsigned char tipo, unsigned char permisos) {
     // Reading the superblock
     super_bloque_t sb;
@@ -436,16 +435,16 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
 
     // Initialize inode with default values
     inodo_t inodo = {
-      .tipo = tipo,
-      .permisos = permisos,
-      .nlinks = 1,
-      .tamEnBytesLog = 0,
-      .atime = time(NULL),
-      .mtime = time(NULL),
-      .ctime = time(NULL),
-      .numBloquesOcupados = 0,
-      .punterosDirectos = {0},
-      .punterosIndirectos = {0},
+        .tipo = tipo,
+        .permisos = permisos,
+        .nlinks = 1,
+        .tamEnBytesLog = 0,
+        .atime = time(NULL),
+        .mtime = time(NULL),
+        .ctime = time(NULL),
+        .numBloquesOcupados = 0,
+        .punterosDirectos = {0},
+        .punterosIndirectos = {0},
     };
 
     if (escribir_inodo(posInodoReservado, &inodo) == FAILURE) {
@@ -464,16 +463,16 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
 }
 
 /**
- * This method obtains the range of pointers in which the logical block 
- * we are looking for is located. and we also obtain the address stored 
+ * This method obtains the range of pointers in which the logical block
+ * we are looking for is located. and we also obtain the address stored
  * in the corresponding pointer of the inode.
- * 
+ *
  * @param inodo
  * @param nblogico
  * @param ptr
- * 
+ *
  * @return
-*/
+ */
 int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr) {
     if (nblogico < DIRECTOS) {
         *ptr = inodo->punterosDirectos[nblogico];
@@ -501,17 +500,17 @@ int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr) {
 
 /**
  * Function to generalise the fetching of block indices pointer blocks.
- * 
+ *
  * @param nblogico
  * @param nivel_punteros
- * 
+ *
  * @return Índice del bloque de punteros
-*/
+ */
 int obtener_indice(unsigned int nblogico, int nivel_punteros) {
     if (nblogico < DIRECTOS) {
         return nblogico;
     }
-    
+
     if (nblogico < INDIRECTOS0) {
         return (nblogico - DIRECTOS);
     }
@@ -524,7 +523,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros) {
             return ((nblogico - INDIRECTOS0) % NPUNTEROS);
         }
     }
-    
+
     if (nblogico < INDIRECTOS2) {
         if (nivel_punteros == 3) {
             return ((nblogico - INDIRECTOS1) / (NPUNTEROS * NPUNTEROS));
@@ -542,15 +541,15 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros) {
 }
 
 /**
- * This method is responsible for obtaining the physical block number corresponding to a 
+ * This method is responsible for obtaining the physical block number corresponding to a
  * given logical block from the indicated inode.
- * 
+ *
  * @param inodo
  * @param nblogico
  * @param reservar
- * 
- * @return 
-*/
+ *
+ * @return
+ */
 int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char reservar) {
     unsigned int ptr, ptr_ant, buffer[NPUNTEROS];
     int nRangoBL, nivel_punteros, indice;
@@ -574,29 +573,29 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
 
                 // Check if the block hangs directly from the inode
                 if (nivel_punteros == nRangoBL) {
-                    inodo->punterosDirectos[nRangoBL - 1] = ptr;
+                    inodo->punterosIndirectos[nRangoBL - 1] = ptr;
 
-                    #if DEBUG4
-                        fprintf(stderr, 
-                            "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n", 
-                            nRangoBL - 1, ptr, ptr, nivel_punteros);
-                    #endif
+#if DEBUG4
+                    fprintf(stderr,
+                            "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
+                            nRangoBL - 1, ptr, ptr, nivel_punteros + 1);
+#endif
                 } else {
                     buffer[indice] = ptr;
 
-                    #if DEBUG4
-                        fprintf(stderr, 
+#if DEBUG4
+                    fprintf(stderr,
                             "[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
-                            nivel_punteros, indice, ptr, ptr, nivel_punteros);
-                    #endif
-                    
+                            nivel_punteros + 1, indice, ptr, ptr, nivel_punteros + 1);
+#endif
+
                     if (bwrite(ptr_ant, buffer) == FAILURE) {
                         return FAILURE;
                     }
                 }
                 // Set to 0s all the buffer pointers
                 memset(buffer, 0, BLOCKSIZE);
-            } 
+            }
         } else {
             // Read from the virtual device the existing block of pointers
             if (bread(ptr, buffer) == FAILURE) {
@@ -624,20 +623,20 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                 // Assign the address of the data block at the inode
                 inodo->punterosDirectos[nblogico] = ptr;
 
-                #if DEBUG4
-                    fprintf(stderr, 
+#if DEBUG4
+                fprintf(stderr,
                         "[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n\n",
                         nblogico, ptr, ptr, nblogico);
-                #endif
+#endif
             } else {
                 // Allocate the address of the data block in the buffer
                 buffer[indice] = ptr;
 
-                #if DEBUG4
-                    fprintf(stderr, 
-                        "[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n\n",
-                        indice, ptr, ptr, nblogico);
-                #endif
+#if DEBUG4
+                fprintf(stderr,
+                        "[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para BL %i)]\n\n",
+                        nivel_punteros + 1, indice, ptr, ptr, nblogico);
+#endif
 
                 if (bwrite(ptr_ant, buffer) == FAILURE) {
                     return FAILURE;

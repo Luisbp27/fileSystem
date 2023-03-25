@@ -1,7 +1,7 @@
 #include "ficheros_basico.h"
 #include <stdio.h>
 
-// Usage: ./my_mkfs <path to virtual device> <number of blocks to allocate>
+// Usage: ./mi_mkfs <path to virtual device> <number of blocks to allocate>
 int main(int argc, char **argv) {
     // Check the possible errors in params
     if (argc < 3) {
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     }
 
     // Root directory
-    reservar_inodo('d', 7);
+    printf("pos: %d", reservar_inodo('d', 7));
 
     // Unmount the virtual device
     if (bumount() == FAILURE) {

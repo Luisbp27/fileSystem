@@ -2,8 +2,8 @@
 
 /**
  * Usage: ./my_mkfs <path to virtual device>
- * 
-*/
+ *
+ */
 int main(int argc, char const *argv[]) {
     // Check the possible errors in params
     if (argc < 2) {
@@ -78,7 +78,7 @@ int main(int argc, char const *argv[]) {
 
     int pos = reservar_bloque();
     printf("Se ha reservado el bloque físico nº %d que era el 1º libre indicado por el MB\n", pos);
-    
+
     if (bread(POS_SB, &sb) == FAILURE) {
         return FAILURE;
     }
@@ -96,14 +96,13 @@ int main(int argc, char const *argv[]) {
         return FAILURE;
     }
     printf("| %u | %u ... %u | %u ... %u | %u ... %u |\n",
-        leer_bit(POS_SB),
-        leer_bit(sb.posPrimerBloqueMB),
-        leer_bit(sb.posUltimoBloqueMB),
-        leer_bit(sb.posPrimerBloqueAI),
-        leer_bit(sb.posUltimoBloqueAI),
-        leer_bit(sb.posPrimerBloqueDatos),
-        leer_bit(sb.posUltimoBloqueDatos)
-    );
+           leer_bit(POS_SB),
+           leer_bit(sb.posPrimerBloqueMB),
+           leer_bit(sb.posUltimoBloqueMB),
+           leer_bit(sb.posPrimerBloqueAI),
+           leer_bit(sb.posUltimoBloqueAI),
+           leer_bit(sb.posPrimerBloqueDatos),
+           leer_bit(sb.posUltimoBloqueDatos));
     printf("| S |    MB   |    AI   |    D    |\n");
 
     printf("\nDATOS DEL DIRECTORIO RAIZ\n");
@@ -171,6 +170,8 @@ int main(int argc, char const *argv[]) {
     printf("nlinks: %u\n", inodoReservado.nlinks);
     printf("Tamaño en bytes lógicos: %u\n", inodoReservado.tamEnBytesLog);
     printf("Bloques ocupados: %u\n", inodoReservado.numBloquesOcupados);
+
+    printf("\nPrimer inodo libre: %d\n", sb.posPrimerInodoLibre);
 #endif
 
     // Unmount the virtual device
