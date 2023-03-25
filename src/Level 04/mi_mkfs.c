@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     }
 
     // Root directory
-    printf("pos: %d", reservar_inodo('d', 7));
+    reservar_inodo('d', 7);
 
     // Unmount the virtual device
     if (bumount() == FAILURE) {
