@@ -3,7 +3,7 @@
 int main(int argc, char *argv[]) {
 
     // argv[1] = dir, argv[2] = ninodo, argv[3] = permisos
-    if (argv[1] == NULL || argv[2] == NULL || argv[3] == NULL) { 
+    if (argc < 3) { 
         fprintf(stderr, "Command syntax should be: permitir <nombre_dispositivo> <ninodo> <permisos>\n");
         return FAILURE;
 

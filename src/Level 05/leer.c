@@ -1,21 +1,16 @@
 #include "ficheros.h"
 
+#define BUFFER_SIZE 1500
+
 int main(int argc, char *argv[]) {
 
-    inodo_t inodo;
-
-    unsigned int tam_buffer = 1500;
-    unsigned char buffer_texto[tam_buffer];
-    unsigned int bytes_leidos = 0;
-    unsigned int total_bytes_leidos = 0;
-    unsigned int ninodo = atoi(argv[2]);
-    unsigned int offset = 0;
-
     // Checking syntax
-    if(argv[1] == NULL || argv[2] == NULL ) {  
+    if(argc < 2) {  
         fprintf(stderr,"Command syntax should be: leer <nombre_dispositivo> <nº inodo>\n");
         return FAILURE;
-    }
+    }    
+    
+    unsigned int ninodo = atoi(argv[2]);
 
     // Mounting the virtual device
     if (bmount(argv[1]) == FAILURE) {
@@ -24,36 +19,44 @@ int main(int argc, char *argv[]) {
     }
 
     // Cleaning the buffer, filling it with 0s
-    if(memset(buffer_texto, 0, tam_buffer) == NULL) {
+    unsigned char buffer_texto[BUFFER_SIZE];
+    if (!memset(buffer_texto, 0, BUFFER_SIZE)) {
         fprintf(stderr, "Error while setting memory\n");
         return FAILURE;
     }
     
-    bytes_leidos = mi_read_f(ninodo, buffer_texto, offset, tam_buffer);
+    unsigned int offset = 0;
+    unsigned int total_bytes_leidos = 0;
+    unsigned int bytes_leidos = mi_read_f(ninodo, buffer_texto, offset, BUFFER_SIZE);
 
-    while (bytes_leidos > 0) {
-        write(1, buffer_texto, bytes_leidos);
+    while (bytes_leidos != 0) {
         total_bytes_leidos += bytes_leidos;
-        offset += tam_buffer;
+        write(1, buffer_texto, bytes_leidos);
 
-        if (memset(buffer_texto, 0, tam_buffer) == NULL) {
+        // Cleaning the buffer
+        if (!memset(buffer_texto, 0, BUFFER_SIZE)) {
             fprintf(stderr, "Error while setting memory\n");
             return FAILURE;
         }
-
-        bytes_leidos = mi_read_f(ninodo, buffer_texto, offset, tam_buffer);
+        
+        offset += BUFFER_SIZE;
+        bytes_leidos = mi_read_f(ninodo, buffer_texto, offset, BUFFER_SIZE);
+        printf("bytes leidos: %d", bytes_leidos);
     }
 
+    inodo_t inodo;
     if (leer_inodo(ninodo, &inodo) == FAILURE) {
         fprintf(stderr, "Error while reading the inode\n");
         return FAILURE;
     }
 
-    printf("\n\nTotal bytes leidos: %u\n", bytes_leidos);
-    printf("tamEnBytesLog: %u\n", inodo.tamEnBytesLog);
+    fprintf(stderr, "\n\nTotal bytes leidos: %u\n", total_bytes_leidos);
+    fprintf(stderr, "tamEnBytesLog: %u\n", inodo.tamEnBytesLog);
 
     if (bumount() == FAILURE) {
         fprintf(stderr,"Error while unmounting the virtual device\n");
         return FAILURE;
     }
+
+    return SUCCESS;
 }

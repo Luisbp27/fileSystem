@@ -22,6 +22,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     unsigned int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
     unsigned int nb_fisico = traducir_bloque_inodo(&inodo, primerBL, 1);
+    if (escribir_inodo(ninodo, &inodo) == FAILURE) {
+        return FAILURE;
+    }
+
     unsigned char buf_bloque[BLOCKSIZE];
     unsigned int bytes_escritos = 0;
 
@@ -112,40 +116,37 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
  * @return Number of bytes actually written
  */
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes) {
+    unsigned int bytes_leidos = 0;
+
     inodo_t inodo;
     if (leer_inodo(ninodo, &inodo) == FAILURE) {
-        return FAILURE;
-    }
-    inodo.atime = time(NULL);
-    escribir_inodo(ninodo, &inodo);
-
-    unsigned int primerBL = offset / BLOCKSIZE;
-    unsigned int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
-    unsigned int desp1 = offset & BLOCKSIZE;
-    unsigned int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
-
-    unsigned int nb_fisico = traducir_bloque_inodo(&inodo, primerBL, 0);
-    unsigned char buf_bloque[BLOCKSIZE];
-
-    unsigned int bytes_leidos;
-
-    if (offset >= inodo.tamEnBytesLog) {
-        bytes_leidos = 0;
         return bytes_leidos;
     }
+    inodo.atime = time(NULL);
+
+    if ((inodo.permisos & 4) != 4) {
+        return bytes_leidos;
+    }
+
+    printf("\n\n offset: %d y tamEnBytesLog: %d \n\n", offset, inodo.tamEnBytesLog);
+    if (offset >= inodo.tamEnBytesLog) {
+        return bytes_leidos;
+    } 
 
     if ((offset + nbytes) >= inodo.tamEnBytesLog) {
         nbytes = inodo.tamEnBytesLog - offset;
     }
 
-    if ((inodo.permisos & 4) != 4) {
-        fprintf(stderr, "The inode %d does not have read permissions", ninodo);
-        return FAILURE;
-    }
+    unsigned int primerBL = offset / BLOCKSIZE;
+    unsigned int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
+    unsigned int nb_fisico = traducir_bloque_inodo(&inodo, primerBL, 0);
+
+    unsigned int desp1 = offset & BLOCKSIZE;
+    unsigned char buf_bloque[BLOCKSIZE];
 
     // Can write in one block
     if (primerBL == ultimoBL) {
-        if (nb_fisico != -1) {
+        if (nb_fisico != FAILURE) {
             if (bread(nb_fisico, buf_bloque) == FAILURE) {
                 return FAILURE;
             }
@@ -155,10 +156,10 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
         bytes_leidos = nbytes;
 
-        // We need more than one block
+    // We need more than one block
     } else {
         // First logic block (8)
-        if (nb_fisico != -1) {
+        if (nb_fisico != FAILURE) {
             if (bread(nb_fisico, buf_bloque) == FAILURE) {
                 return FAILURE;
             }
@@ -172,7 +173,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         for (int i = primerBL + 1; i < ultimoBL; i++) {
             nb_fisico = traducir_bloque_inodo(&inodo, i, 0);
 
-            if (nb_fisico != -1) {
+            if (nb_fisico != FAILURE) {
                 if (bread(nb_fisico, buf_bloque) == FAILURE) {
                     return FAILURE;
                 }
@@ -184,6 +185,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         }
 
         // Last logic block (12)
+        unsigned int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
         nb_fisico = traducir_bloque_inodo(&inodo, ultimoBL, 0);
 
         if (nb_fisico != -1) {
@@ -195,7 +197,9 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         }
 
         bytes_leidos += desp2 + 1;
-    }
+    } 
+
+    inodo.atime = time(NULL);
 
     return bytes_leidos;
 }
