@@ -2,10 +2,18 @@
 
 #define BUFFER_SIZE 1500
 
+/**
+ * Usage: leer <nombre_dispositivo> <nº inodo>
+ * 
+ * @param argc
+ * @param argv
+ * 
+ * @return 0 if success, -1 if error
+*/
 int main(int argc, char *argv[]) {
 
     // Checking syntax
-    if(argc < 2) {  
+    if (argc < 2) {  
         fprintf(stderr,"Command syntax should be: leer <nombre_dispositivo> <nº inodo>\n");
         return FAILURE;
     }    

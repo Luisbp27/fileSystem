@@ -8,7 +8,7 @@
  * @param offset
  * @param nbytes
  *
- * @return
+ * @return bytes written
  */
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes) {
     inodo_t inodo;
@@ -205,18 +205,19 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 }
 
 /**
- * This method
+ * This method returns the meta-information of a file/directory (corresponding to the inode number passed as argument)
  *
  * @param ninodo
  * @param p_stat
  *
- * @return Meta-information of a file/directory (corresponding to the inode number passed as argument)
+ * @return Meta-information of a file/directory
  */
 int mi_stat_f(unsigned int ninodo, struct STAT *p_stat) {
 
     inodo_t inodo;
     leer_inodo(ninodo, &inodo);
 
+    // Fill the structure
     p_stat->tipo = inodo.tipo;
     p_stat->permisos = inodo.permisos;
 
@@ -238,7 +239,7 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat) {
  * @param ninodo
  * @param permisos
  *
- * @return
+ * @return -1 if there is an error, 0 otherwise
  */
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
     inodo_t inodo;
@@ -251,6 +252,14 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
     return SUCCESS;
 }
 
+/**
+ * This method truncates a file/directory (corresponding to the inode number passed as argument, ninodo)
+ * 
+ * @param ninodo
+ * @param nbytes
+ * 
+ * @return -1 if there is an error or free blocks
+ */
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes) {
 
     inodo_t inodo;
@@ -285,6 +294,7 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes) {
     inodo.mtime = time(NULL);
     inodo.ctime = time(NULL);
 
+    // Updating the inode
     inodo.tamEnBytesLog = nbytes;
     inodo.numBloquesOcupados -= liberados;
 

@@ -417,7 +417,7 @@ int leer_inodo(unsigned int ninodo, inodo_t *inodo) {
  * @param tipo
  * @param permisos
  *
- * @return Returns the position of the reserved inode
+ * @return Position of the reserved inode
  */
 int reservar_inodo(unsigned char tipo, unsigned char permisos) {
     // Reading the superblock
@@ -471,7 +471,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
  * @param nblogico
  * @param ptr
  *
- * @return
+ * @return -1 if there was an error, 0, 1, 2 or 3 otherwise
  */
 int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr) {
     if (nblogico < DIRECTOS) {
@@ -495,6 +495,7 @@ int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr) {
     }
 
     *ptr = 0;
+
     return FAILURE;
 }
 
@@ -504,7 +505,7 @@ int obtener_nRangoBL(inodo_t *inodo, unsigned int nblogico, unsigned int *ptr) {
  * @param nblogico
  * @param nivel_punteros
  *
- * @return Índice del bloque de punteros
+ * @return -1 if there was an error or the index of the pointer block
  */
 int obtener_indice(unsigned int nblogico, int nivel_punteros) {
     if (nblogico < DIRECTOS) {
@@ -548,7 +549,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros) {
  * @param nblogico
  * @param reservar
  *
- * @return
+ * @return -1 if there was an error or the physical block number
  */
 int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char reservar) {
     unsigned int ptr, ptr_ant, buffer[NPUNTEROS];
@@ -697,6 +698,14 @@ int libearar_inodo(unsigned int ninodo) {
     return ninodo;
 }
 
+/**
+ * This method is responsible for freeing all the blocks of an inode.
+ * 
+ * @param primerBL 
+ * @param inodo
+ * 
+ * @return Number of freed blocks
+*/
 int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
 
     unsigned int nivel_punteros, indice, nBL, ultimoBL;
@@ -721,6 +730,7 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
     memset (bufAux_punteros, 0, BLOCKSIZE);
 
     for (nBL = primerBL; nBL <= ultimoBL; nBL++) {
+        // Check if the block is a direct pointer
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr);
         if (nRangoBL < 0) {
             return FAILURE;
@@ -748,11 +758,14 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
             liberar_bloque(ptr);
             liberados++;
 
+            // Check if is a direct pointer and set it to 0
             if (nRangoBL == 0) {
                 inodo->punterosDirectos[nBL] = 0;
+            
             } else {
                 nivel_punteros = 1;
 
+                // While are hanging pointer blocks
                 while (nivel_punteros <= nRangoBL) {
                     indice = indices[nivel_punteros - 1];
                     bloque_punteros[nivel_punteros - 1][indice] = 0;

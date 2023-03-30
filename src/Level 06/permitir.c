@@ -1,5 +1,13 @@
 #include "ficheros.h"
 
+/**
+ * Usage: permitir <nombre_dispositivo> <ninodo> <permisos>
+ * 
+ * @param argc
+ * @param argv
+ * 
+ * @return 0 if success, -1 if error
+*/
 int main(int argc, char *argv[]) {
 
     // argv[1] = dir, argv[2] = ninodo, argv[3] = permisos

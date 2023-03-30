@@ -1,5 +1,13 @@
 #include "ficheros.h"
 
+/**
+ * Usage: truncar <nombre_dispositivo> <nº inodo> <nuevo tamaño>
+ * 
+ * @param argc
+ * @param argv
+ * 
+ * @return 0 if success, -1 if error
+*/
 int main (int argc, char *argv[]) {
 
     // Checking syntax
@@ -17,7 +25,7 @@ int main (int argc, char *argv[]) {
     unsigned int ninodo = atoi(argv[2]);
     unsigned int nbytes = atoi(argv[3]);
     // Check if the inode exists
-    if (nbytes == 0){
+    if (nbytes == 0) {
         liberar_inodo(ninodo);
     }else{
         mi_truncar_f(ninodo, nbytes);
