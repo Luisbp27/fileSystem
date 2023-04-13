@@ -731,6 +731,10 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
 
     memset(bufAux_punteros, 0, BLOCKSIZE);
 
+    #if DEBUG6
+        fprintf(stderr, "[liberar_bloques_inodo()→ primerBL %d, utlimoBL %d]\n", primerBL, ultimoBL);
+    #endif
+
     for (nBL = primerBL; nBL <= ultimoBL; nBL++) {
         // Check if the block is a direct pointer
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr);
@@ -760,6 +764,10 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
             liberar_bloque(ptr);
             liberados++;
 
+            #if DEBUG6
+                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", ptr, nBL);
+            #endif
+
             // Check if is a direct pointer and set it to 0
             if (nRangoBL == 0) {
                 inodo->punterosDirectos[nBL] = 0;
@@ -777,6 +785,10 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
                         // No more occupied blocks will hang, the pointer block must be freed.
                         liberar_bloque(ptr);
                         liberados++;
+
+                        #if DEBUG6
+                            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d correspondiente al BL: %d]\n", ptr, nivel_punteros, nBL);
+                        #endif
 
                         if (nivel_punteros == nRangoBL) {
                             inodo->punterosIndirectos[nRangoBL - 1] = 0;
@@ -796,6 +808,10 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
             }
         }
     }
+
+    #if DEBUG6
+        fprintf(stderr, "[liberar_bloques_inodo()→ total bloques liberados: %d]\n", liberados);
+    #endif
 
     return liberados;
 }
