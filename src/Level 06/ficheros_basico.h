@@ -77,3 +77,5 @@ int escribir_inodo(unsigned int ninodo, inodo_t *inodo);
 int leer_inodo(unsigned int ninodo, inodo_t *inodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);
 int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char reservar);
+int liberar_inodo(unsigned int ninodo);
+int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo);

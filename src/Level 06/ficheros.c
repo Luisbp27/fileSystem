@@ -258,3 +258,56 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
 
     return SUCCESS;
 }
+
+/**
+ * This method truncates a file/directory (corresponding to the inode number passed as argument, ninodo)
+ *
+ * @param ninodo
+ * @param nbytes
+ *
+ * @return -1 if there is an error or free blocks
+ */
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes) {
+
+    inodo_t inodo;
+    if (leer_inodo(ninodo, &inodo) == FAILURE) {
+        return FAILURE;
+    }
+
+    // Checking inode permissions
+    if ((inodo.permisos & 2) != 2) {
+        fprintf(stderr, "The inode %d does not have write permissions", ninodo);
+        return FAILURE;
+    }
+
+    // Checking the size
+    if (nbytes > inodo.tamEnBytesLog) {
+        fprintf(stderr, "The new size is greater than the current size");
+        return FAILURE;
+    }
+
+    // Obtaining the number of logical block
+    int primerBL;
+    if (nbytes % BLOCKSIZE == 0) {
+        primerBL = nbytes / BLOCKSIZE;
+    } else {
+        primerBL = nbytes / BLOCKSIZE + 1;
+    }
+
+    // Freeing the blocks
+    int liberados = 0;
+    liberados = liberar_bloques_inodo(primerBL, &inodo);
+
+    inodo.mtime = time(NULL);
+    inodo.ctime = time(NULL);
+
+    // Updating the inode
+    inodo.tamEnBytesLog = nbytes;
+    inodo.numBloquesOcupados -= liberados;
+
+    if (escribir_inodo(ninodo, &inodo) == FAILURE) {
+        return FAILURE;
+    }
+
+    return liberados;
+}

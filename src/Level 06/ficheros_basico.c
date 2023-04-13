@@ -650,3 +650,152 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
 
     return ptr;
 }
+
+/**
+ * This method is responsible for freeing all the blocks of an inode.
+ *
+ * @param ninodo
+ *
+ * @return Number of freed blocks
+ */
+int liberar_inodo(unsigned int ninodo) {
+    inodo_t inodo;
+    if (leer_inodo(ninodo, &inodo) == FAILURE) {
+        return FAILURE;
+    }
+
+    // Releasing all the logical blocks
+    inodo.numBloquesOcupados -= liberar_bloques_inodo(0, &inodo);
+    if (inodo.numBloquesOcupados != 0) {
+        return FAILURE;
+    }
+
+    // Updating the inode values
+    inodo.tipo = 'l';
+    inodo.tamEnBytesLog = 0;
+
+    // Reading the superblock
+    super_bloque_t sb;
+    if (bread(POS_SB, &sb) == FAILURE) {
+        return FAILURE;
+    }
+
+    // We include the freed inode in the linked list as the first free inode, and we link
+    // this one with the previous one so as not to lose order
+    inodo.punterosDirectos[0] = sb.posPrimerInodoLibre;
+    sb.posPrimerInodoLibre = ninodo;
+    sb.cantInodosLibres++;
+
+    // Writing the updates on the superblock
+    if (bwrite(POS_SB, &sb) == FAILURE) {
+        return FAILURE;
+    }
+
+    inodo.ctime = time(NULL);
+    // Writing the updates on the inode
+    if (escribir_inodo(ninodo, &inodo) == FAILURE) {
+        return FAILURE;
+    }
+
+    return ninodo;
+}
+
+/**
+ * This method is responsible for freeing all the blocks of an inode.
+ *
+ * @param primerBL
+ * @param inodo
+ *
+ * @return Number of freed blocks
+ */
+int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
+
+    unsigned int nivel_punteros, indice, nBL, ultimoBL;
+    unsigned int ptr = 0;
+    unsigned int bloque_punteros[3][NPUNTEROS];
+    unsigned char bufAux_punteros[BLOCKSIZE];
+    int ptr_nivel[3], nRangoBL, indices[3];
+    int liberados = 0;
+
+    // Check if the file is empty
+    if (inodo->tamEnBytesLog == 0) {
+        return 0;
+    }
+
+    // Obtain the number of the last block
+    if (inodo->tamEnBytesLog % BLOCKSIZE == 0) {
+        ultimoBL = (inodo->tamEnBytesLog / BLOCKSIZE) - 1;
+    } else {
+        ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE;
+    }
+
+    memset(bufAux_punteros, 0, BLOCKSIZE);
+
+    for (nBL = primerBL; nBL <= ultimoBL; nBL++) {
+        // Check if the block is a direct pointer
+        nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr);
+        if (nRangoBL < 0) {
+            return FAILURE;
+        }
+        nivel_punteros = nRangoBL;
+
+        // While are hanging pointer blocks
+        while (ptr > 0 && nivel_punteros > 0) {
+            indice = obtener_indice(nBL, nivel_punteros);
+            if (indice == 0 || nBL == primerBL) {
+                // Read from the device if it is not already previously loaded into a buffer
+                if (bread(ptr, bloque_punteros[nivel_punteros - 1]) == FAILURE) {
+                    return FAILURE;
+                }
+            }
+
+            ptr_nivel[nivel_punteros - 1] = ptr;
+            indices[nivel_punteros - 1] = indice;
+            ptr = bloque_punteros[nivel_punteros - 1][indice];
+            nivel_punteros--;
+        }
+
+        // If the data block exists
+        if (ptr > 0) {
+            liberar_bloque(ptr);
+            liberados++;
+
+            // Check if is a direct pointer and set it to 0
+            if (nRangoBL == 0) {
+                inodo->punterosDirectos[nBL] = 0;
+
+            } else {
+                nivel_punteros = 1;
+
+                // While are hanging pointer blocks
+                while (nivel_punteros <= nRangoBL) {
+                    indice = indices[nivel_punteros - 1];
+                    bloque_punteros[nivel_punteros - 1][indice] = 0;
+                    ptr = ptr_nivel[nivel_punteros - 1];
+
+                    if (memcmp(bloque_punteros[nivel_punteros - 1], bufAux_punteros, BLOCKSIZE) == 0) {
+                        // No more occupied blocks will hang, the pointer block must be freed.
+                        liberar_bloque(ptr);
+                        liberados++;
+
+                        if (nivel_punteros == nRangoBL) {
+                            inodo->punterosIndirectos[nRangoBL - 1] = 0;
+                        }
+
+                        nivel_punteros++;
+
+                    } else {
+                        // There are still occupied blocks hanging, the pointer block must be updated.
+                        if (bwrite(ptr, bloque_punteros[nivel_punteros - 1]) == FAILURE) {
+                            return FAILURE;
+                        }
+
+                        nivel_punteros = nRangoBL + 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return liberados;
+}
