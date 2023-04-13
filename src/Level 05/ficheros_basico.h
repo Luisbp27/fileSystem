@@ -4,6 +4,7 @@
 
 #define DEBUG3 0
 #define DEBUG4 0
+#define DEBUG5 0
 
 #define POS_SB 0      // The SB is written in the first block of our file system
 #define TAM_SB 1      // Unit: Blocks

@@ -5,16 +5,16 @@
 int main(int argc, char *argv[]) {
 
     // Checking syntax
-    if(argc < 2) {  
-        fprintf(stderr,"Command syntax should be: leer <nombre_dispositivo> <nº inodo>\n");
+    if (argc < 3) {
+        fprintf(stderr, "Command syntax should be: leer <nombre_dispositivo> <nº inodo>\n");
         return FAILURE;
-    }    
-    
+    }
+
     unsigned int ninodo = atoi(argv[2]);
 
     // Mounting the virtual device
     if (bmount(argv[1]) == FAILURE) {
-        fprintf(stderr,"Error while mounting the virtual device\n");
+        fprintf(stderr, "Error while mounting the virtual device\n");
         return FAILURE;
     }
 
@@ -24,12 +24,16 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error while setting memory\n");
         return FAILURE;
     }
-    
+
     unsigned int offset = 0;
     unsigned int total_bytes_leidos = 0;
     unsigned int bytes_leidos = mi_read_f(ninodo, buffer_texto, offset, BUFFER_SIZE);
+    if (bytes_leidos == FAILURE) {
+        fprintf(stderr, "Could not read the file. Does it have read perms?\n");
+        return FAILURE;
+    }
 
-    while (bytes_leidos != 0) {
+    while (bytes_leidos > 0) {
         total_bytes_leidos += bytes_leidos;
         write(1, buffer_texto, bytes_leidos);
 
@@ -38,10 +42,10 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Error while setting memory\n");
             return FAILURE;
         }
-        
+
         offset += BUFFER_SIZE;
         bytes_leidos = mi_read_f(ninodo, buffer_texto, offset, BUFFER_SIZE);
-        printf("bytes leidos: %d", bytes_leidos);
+        // fprintf(stderr, "bytes leidos: %d\n", bytes_leidos);
     }
 
     inodo_t inodo;
@@ -54,7 +58,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "tamEnBytesLog: %u\n", inodo.tamEnBytesLog);
 
     if (bumount() == FAILURE) {
-        fprintf(stderr,"Error while unmounting the virtual device\n");
+        fprintf(stderr, "Error while unmounting the virtual device\n");
         return FAILURE;
     }
 
