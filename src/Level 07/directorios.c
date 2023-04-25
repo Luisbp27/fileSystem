@@ -161,7 +161,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
  * 
  * @param error
 */
-void mostrar_error_entrada(int error) {
+void mostrar_error_buscar_entrada(int error) {
     switch (error) {
         case -2: fprintf(stderr, "Error: Camino incorrecto.\n"); break;
         case -3: fprintf(stderr, "Error: Permiso denegado de lectura.\n"); break;
