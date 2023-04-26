@@ -6,6 +6,7 @@
 #define DEBUG4 0
 #define DEBUG5 0
 #define DEBUG6 0
+#define DEBUG7 1
 #define DEBUGIMPORTANT 1
 
 #define POS_SB 0      // The SB is written in the first block of our file system

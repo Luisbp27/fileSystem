@@ -1,4 +1,3 @@
-#include "ficheros_basico.h"
 #include "directorios.h"
 
 void mostrar_buscar_entrada(char *camino, char reservar) {
@@ -20,8 +19,8 @@ void mostrar_buscar_entrada(char *camino, char reservar) {
 
 /**
  * Usage: ./my_mkfs <path to virtual device>
- * 
-*/
+ *
+ */
 int main(int argc, char const *argv[]) {
     // Check the possible errors in params
     if (argc < 2) {
@@ -96,7 +95,7 @@ int main(int argc, char const *argv[]) {
 
     int pos = reservar_bloque();
     printf("Se ha reservado el bloque físico nº %d que era el 1º libre indicado por el MB\n", pos);
-    
+
     if (bread(POS_SB, &sb) == FAILURE) {
         return FAILURE;
     }
@@ -114,14 +113,13 @@ int main(int argc, char const *argv[]) {
         return FAILURE;
     }
     printf("| %u | %u ... %u | %u ... %u | %u ... %u |\n",
-        leer_bit(POS_SB),
-        leer_bit(sb.posPrimerBloqueMB),
-        leer_bit(sb.posUltimoBloqueMB),
-        leer_bit(sb.posPrimerBloqueAI),
-        leer_bit(sb.posUltimoBloqueAI),
-        leer_bit(sb.posPrimerBloqueDatos),
-        leer_bit(sb.posUltimoBloqueDatos)
-    );
+           leer_bit(POS_SB),
+           leer_bit(sb.posPrimerBloqueMB),
+           leer_bit(sb.posUltimoBloqueMB),
+           leer_bit(sb.posPrimerBloqueAI),
+           leer_bit(sb.posUltimoBloqueAI),
+           leer_bit(sb.posPrimerBloqueDatos),
+           leer_bit(sb.posUltimoBloqueDatos));
     printf("| S |    MB   |    AI   |    D    |\n");
 
     printf("\nDATOS DEL DIRECTORIO RAIZ\n");
@@ -193,19 +191,19 @@ int main(int argc, char const *argv[]) {
 
 #if DEBUG7
     // Show the creation of directories and errors
-    mostrar_buscar_entrada("pruebas/", 1); //ERROR_CAMINO_INCORRECTO
-    mostrar_buscar_entrada("/pruebas/", 0); //ERROR_NO_EXISTE_ENTRADA_CONSULTA
-    mostrar_buscar_entrada("/pruebas/docs/", 1); //ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO
-    mostrar_buscar_entrada("/pruebas/", 1); // creamos /pruebas/
-    mostrar_buscar_entrada("/pruebas/docs/", 1); //creamos /pruebas/docs/
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 1); //creamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/docs/doc1/doc11", 1);  
-    //ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO
-    mostrar_buscar_entrada("/pruebas/", 1); //ERROR_ENTRADA_YA_EXISTENTE
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 0); //consultamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 1); //creamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/casos/", 1); //creamos /pruebas/casos/
-    mostrar_buscar_entrada("/pruebas/docs/doc2", 1); //creamos /pruebas/docs/doc2
+    mostrar_buscar_entrada("pruebas/", 1);           // ERROR_CAMINO_INCORRECTO
+    mostrar_buscar_entrada("/pruebas/", 0);          // ERROR_NO_EXISTE_ENTRADA_CONSULTA
+    mostrar_buscar_entrada("/pruebas/docs/", 1);     // ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO
+    mostrar_buscar_entrada("/pruebas/", 1);          // creamos /pruebas/
+    mostrar_buscar_entrada("/pruebas/docs/", 1);     // creamos /pruebas/docs/
+    mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // creamos /pruebas/docs/doc1
+    mostrar_buscar_entrada("/pruebas/docs/doc1/doc11", 1);
+    // ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO
+    mostrar_buscar_entrada("/pruebas/", 1);          // ERROR_ENTRADA_YA_EXISTENTE
+    mostrar_buscar_entrada("/pruebas/docs/doc1", 0); // consultamos /pruebas/docs/doc1
+    mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // creamos /pruebas/docs/doc1
+    mostrar_buscar_entrada("/pruebas/casos/", 1);    // creamos /pruebas/casos/
+    mostrar_buscar_entrada("/pruebas/docs/doc2", 1); // creamos /pruebas/docs/doc2
 #endif
 
     // Unmount the virtual device

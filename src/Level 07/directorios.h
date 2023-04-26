@@ -1,7 +1,5 @@
 #include "ficheros.h"
 
-#define DEBUG7 1
-
 // Directory/file name size, ext2 = 255
 #define TAMNOMBRE 60
 
