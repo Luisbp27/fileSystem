@@ -578,7 +578,7 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                 if (nivel_punteros == nRangoBL) {
                     inodo->punterosIndirectos[nRangoBL - 1] = ptr;
 
-#if DEBUG4
+#if DEBUGIMPORTANT
                     fprintf(stderr,
                             "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
                             nRangoBL - 1, ptr, ptr, nivel_punteros + 1);
@@ -586,7 +586,7 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                 } else {
                     buffer[indice] = ptr;
 
-#if DEBUG4
+#if DEBUGIMPORTANT
                     fprintf(stderr,
                             "[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
                             nivel_punteros + 1, indice, ptr, ptr, nivel_punteros + 1);
@@ -626,7 +626,7 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                 // Assign the address of the data block at the inode
                 inodo->punterosDirectos[nblogico] = ptr;
 
-#if DEBUG4
+#if DEBUGIMPORTANT
                 fprintf(stderr,
                         "[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n\n",
                         nblogico, ptr, ptr, nblogico);
@@ -635,7 +635,7 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                 // Allocate the address of the data block in the buffer
                 buffer[indice] = ptr;
 
-#if DEBUG4
+#if DEBUGIMPORTANT
                 fprintf(stderr,
                         "[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para BL %i)]\n\n",
                         nivel_punteros + 1, indice, ptr, ptr, nblogico);
@@ -731,9 +731,9 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
 
     memset(bufAux_punteros, 0, BLOCKSIZE);
 
-    #if DEBUG6
-        fprintf(stderr, "[liberar_bloques_inodo()→ primerBL %d, utlimoBL %d]\n", primerBL, ultimoBL);
-    #endif
+#if DEBUGIMPORTANT
+    fprintf(stderr, "[liberar_bloques_inodo()→ primerBL %d, utlimoBL %d]\n", primerBL, ultimoBL);
+#endif
 
     for (nBL = primerBL; nBL <= ultimoBL; nBL++) {
         // Check if the block is a direct pointer
@@ -764,9 +764,9 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
             liberar_bloque(ptr);
             liberados++;
 
-            #if DEBUG6
-                fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", ptr, nBL);
-            #endif
+#if DEBUGIMPORTANT
+            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", ptr, nBL);
+#endif
 
             // Check if is a direct pointer and set it to 0
             if (nRangoBL == 0) {
@@ -786,9 +786,9 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
                         liberar_bloque(ptr);
                         liberados++;
 
-                        #if DEBUG6
-                            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d correspondiente al BL: %d]\n", ptr, nivel_punteros, nBL);
-                        #endif
+#if DEBUGIMPORTANT
+                        fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d correspondiente al BL: %d]\n", ptr, nivel_punteros, nBL);
+#endif
 
                         if (nivel_punteros == nRangoBL) {
                             inodo->punterosIndirectos[nRangoBL - 1] = 0;
@@ -809,9 +809,9 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
         }
     }
 
-    #if DEBUG6
-        fprintf(stderr, "[liberar_bloques_inodo()→ total bloques liberados: %d]\n", liberados);
-    #endif
+#if DEBUGIMPORTANT
+    fprintf(stderr, "[liberar_bloques_inodo()→ total bloques liberados: %d]\n", liberados);
+#endif
 
     return liberados;
 }
