@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     }
 
     // Buffer to store the directory entries
-    unsigned char buffer[TAMBUFFER];
+    char buffer[TAMBUFFER];
     memset(buffer, 0, TAMBUFFER);
 
     // Type of the entry

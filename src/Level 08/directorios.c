@@ -255,7 +255,8 @@ int mi_dir(const char *camino, char *buffer, char *tipo) {
 
     nEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
 
-    int offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+    int offset = 0;
+    offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
 
     // Build each entry
     for (int i = 0; i < nEntradas; i++) {
