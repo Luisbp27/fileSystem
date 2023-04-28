@@ -70,8 +70,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     }
 
 #if DEBUGIMPORTANT
-    printf("[buscar_entrada()->inicial: %s, final: %s, reservar: %d]\n", inicial,
-           final, reservar);
+    printf("[buscar_entrada()->inicial: %s, final: %s, reservar: %d]\n", inicial, final, reservar);
 #endif
 
     // Search for the entry in the root directory
@@ -312,6 +311,14 @@ int mi_dir(const char *camino, char *buffer, char *tipo) {
     return nEntradas;
 }
 
+/**
+ * This method changes the permisions of a file or directory
+ * 
+ * @param camino The path to the file or directory
+ * @param permisos The new permisions
+ * 
+ * @return 0 if success, -1 if error
+*/
 int mi_chmod(const char *camino, unsigned char permisos) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
