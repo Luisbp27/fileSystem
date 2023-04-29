@@ -577,20 +577,8 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                 // Check if the block hangs directly from the inode
                 if (nivel_punteros == nRangoBL) {
                     inodo->punterosIndirectos[nRangoBL - 1] = ptr;
-
-#if DEBUGIMPORTANT
-                    fprintf(stderr,
-                            "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
-                            nRangoBL - 1, ptr, ptr, nivel_punteros + 1);
-#endif
                 } else {
                     buffer[indice] = ptr;
-
-#if DEBUGIMPORTANT
-                    fprintf(stderr,
-                            "[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
-                            nivel_punteros + 1, indice, ptr, ptr, nivel_punteros + 1);
-#endif
 
                     if (bwrite(ptr_ant, buffer) == FAILURE) {
                         return FAILURE;
@@ -626,20 +614,9 @@ int traducir_bloque_inodo(inodo_t *inodo, unsigned int nblogico, unsigned char r
                 // Assign the address of the data block at the inode
                 inodo->punterosDirectos[nblogico] = ptr;
 
-#if DEBUGIMPORTANT
-                fprintf(stderr,
-                        "[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n\n",
-                        nblogico, ptr, ptr, nblogico);
-#endif
             } else {
                 // Allocate the address of the data block in the buffer
                 buffer[indice] = ptr;
-
-#if DEBUGIMPORTANT
-                fprintf(stderr,
-                        "[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para BL %i)]\n\n",
-                        nivel_punteros + 1, indice, ptr, ptr, nblogico);
-#endif
 
                 if (bwrite(ptr_ant, buffer) == FAILURE) {
                     return FAILURE;

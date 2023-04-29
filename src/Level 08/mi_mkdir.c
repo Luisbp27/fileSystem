@@ -19,13 +19,14 @@ int main(int argc, char **argv) {
 
     // Checking if the path ends in /
     if (argv[3][path_len - 1] != '/') {
-        fprintf(stderr, "The path must end in / to create a directory \n");
+        fprintf(stderr, "Invalid path \n");
         return FAILURE;
     }
 
     // Check perms
-    if ((atoi(argv[2]) < 0) || (atoi(argv[2]) > 7)) {
-        fprintf(stderr, "Invalid perms \n");
+    int perms = atoi(argv[2]);
+    if ((perms < 0) || (perms > 7)) {
+        fprintf(stderr, "Invalid perms <<%d>> \n", perms);
         return FAILURE;
     }
 

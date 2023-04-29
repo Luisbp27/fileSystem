@@ -336,6 +336,14 @@ int mi_chmod(const char *camino, unsigned char permisos) {
     return SUCCESS;
 }
 
+/**
+ * This method allow us to visualize the information of the inode of the path given
+ * 
+ * @param camino The path to the file or directory
+ * @param p_stat The struct where we will save the information
+ * 
+ * @return 0 if success, -1 if error
+*/
 int mi_stat(const char *camino, struct STAT *p_stat) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
