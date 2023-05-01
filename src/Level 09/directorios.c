@@ -1,5 +1,7 @@
 #include "directorios.h"
 
+static struct UltimaEntrada UltimaEntradaEscritura;
+
 /**
  * This method extracts the path of a file or directory from a given path.
  *
@@ -200,7 +202,7 @@ void mostrar_error_buscar_entrada(int error) {
             fprintf(stderr, "Error: No es un directorio.\n");
             break;
         default:
-            fprintf(stderr, "Error: Desconocido (código: %d)", error);
+            fprintf(stderr, "Error: Desconocido (código: %d) \n", error);
             break;
     }
 }
@@ -364,4 +366,102 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
     }
 
     return p_inodo;
+}
+
+/**
+ * This method allow us to write in a file
+ * 
+ * @param camino The path to the file or directory
+ * @param buf The buffer where we will save the information
+ * @param offset The offset where we will start writing
+ * @param nbytes The number of bytes to write
+ * 
+ * @return 0 if success, -1 if error
+*/
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes) {
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+
+    // Check if the last entry is the same as the current one
+    if (strcmp(UltimaEntradaEscritura.camino, camino) == 0) {
+        // If it is, we don't need to search for the inode
+        p_inodo = UltimaEntradaEscritura.p_inodo;
+
+        #if DEBUG9
+            fprintf(stderr, "\n [mi_write() → Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n");
+        #endif
+
+    } else {
+        int error;
+        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2)) < 0) { 
+            mostrar_error_buscar_entrada(error);
+            return FAILURE;
+        }
+
+        // Save the last entry
+        strcpy(UltimaEntradaEscritura.camino, camino);
+        UltimaEntradaEscritura.p_inodo = p_inodo;
+
+        #if DEBUG9
+            fprintf(stderr, "\n [mi_write() -> Actualizamos la caché de escritura] \n");
+        #endif
+    }
+
+    // Write the data
+    int bytes = mi_write_f(p_inodo, buf, offset, nbytes);
+    if (bytes == FAILURE) {
+        return FAILURE;
+    }
+
+    return bytes;
+}
+
+/**
+ * This method allow us to read from a file
+ * 
+ * @param camino The path to the file or directory
+ * @param buf The buffer where we will save the information
+ * @param offset The offset where we will start writing
+ * @param nbytes The number of bytes to write
+ * 
+ * @return 0 if success, -1 if error
+*/
+int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes) {
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+
+    // Check if the last entry is the same as the current one
+    if(strcmp(camino, UltimaEntradaEscritura.camino) == 0){ //vemos si es escritura sobre el mismo inodo
+        // If it is, we don't need to search for the inode
+        p_inodo = UltimaEntradaEscritura.p_inodo;
+        
+        #if DEBUG9
+            fprintf(stderr, "\n [mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
+        #endif
+
+    } else {
+        int error;
+        if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) { // Permisos 4 para lectura
+            mostrar_error_buscar_entrada(error);    
+            return FAILURE;
+        }
+
+        // Save the last entry
+        strcpy(UltimaEntradaEscritura.camino, camino);
+        UltimaEntradaEscritura.p_inodo = p_inodo;
+
+        #if DEBUG9
+            fprintf(stderr, "\n [mi_read() -> Actualizamos la caché de lectura] \n");
+        #endif
+    }
+
+    // Read the data
+    int bytes = mi_read_f(p_inodo, buf, offset, nbytes);
+    if (bytes == FAILURE) {
+        return FAILURE;
+    }
+
+    return bytes;
 }
