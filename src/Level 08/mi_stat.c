@@ -25,23 +25,26 @@ int main(int argc, char **argv) {
     }
 
     char adate[24], mdate[24], cdate[24];
-    struct tm *info;
 
     // Formatting the dates
-    strftime(adate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&stat.atime));
-    strftime(cdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&stat.ctime));
-    strftime(mdate, 24, "%a %d-%m-%Y %H:%M:%S", info = localtime(&stat.mtime));
+    strftime(adate, 24, "%a %d-%m-%Y %H:%M:%S", localtime(&stat.atime));
+    strftime(cdate, 24, "%a %d-%m-%Y %H:%M:%S", localtime(&stat.ctime));
+    strftime(mdate, 24, "%a %d-%m-%Y %H:%M:%S", localtime(&stat.mtime));
 
     // Printing the stat
     printf("Nº de inodo: %d \n", ninodo);
     printf("Tipo: %c \n", stat.tipo);
     printf("Permisos: %d \n", stat.permisos);
-    printf("atime: %ld \n", stat.atime);
-    printf("ctime: %ld \n", stat.ctime);
-    printf("mtime: %ld \n", stat.mtime);
+    printf("atime: %s \n", adate);
+    printf("ctime: %s \n", cdate);
+    printf("mtime: %s \n", mdate);
     printf("nlinks: %d \n", stat.nlinks);
     printf("tamEnBytesLog: %d \n", stat.tamEnBytesLog);
     printf("numBloquesOcupados: %d \n", stat.numBloquesOcupados);
 
-    bumount();
+    if (bumount() == FAILURE) {
+        return FAILURE;
+    }
+
+    return SUCCESS;
 }

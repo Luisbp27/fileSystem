@@ -62,7 +62,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     }
 
     char inicial[sizeof(entrada.nombre)];
+    memset(inicial, 0, sizeof(inicial));
     char final[strlen(camino_parcial)];
+    memset(final, 0, sizeof(final));
     char tipo;
 
     if (extraer_camino(camino_parcial, inicial, final, &tipo) == FAILURE) {
@@ -133,7 +135,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                 entrada.ninodo = reservar_inodo(tipo, permisos);
 
 #if DEBUGIMPORTANT
-                printf("[buscar_entrada()->reservado inodo: %d tipo %c con permisos %d para '%s']\n", entrada.ninodo, tipo, permisos, entrada.nombre);
+                printf("[buscar_entrada()->reservado inodo: %d tipo %c con permisos %d para %s]\n", entrada.ninodo, tipo, permisos, entrada.nombre);
 #endif
 
 #if DEBUGIMPORTANT
@@ -210,7 +212,8 @@ int mi_creat(const char *camino, unsigned char permisos) {
 
     int error;
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0) {
-        return error;
+        mostrar_error_buscar_entrada(error);
+        return FAILURE;
     }
 
     return EXIT_SUCCESS;
@@ -227,7 +230,7 @@ int mi_dir(const char *camino, char *buffer, char *tipo) {
     int error;
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) {
         mostrar_error_buscar_entrada(error);
-        return error;
+        return FAILURE;
     }
 
     inodo_t inodo;
@@ -326,6 +329,7 @@ int mi_chmod(const char *camino, unsigned char permisos) {
 
     int error;
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos)) < 0) {
+        mostrar_error_buscar_entrada(error);
         return error;
     }
 
@@ -351,6 +355,7 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
 
     int error;
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, p_stat->permisos)) < 0) {
+        mostrar_error_buscar_entrada(error);
         return error;
     }
 

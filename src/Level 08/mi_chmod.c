@@ -29,9 +29,14 @@ int main(int argc, char **argv) {
 
     // Changing the permissions
     if (mi_chmod(argv[3], atoi(argv[2])) == FAILURE) {
-        fprintf(stderr, "Error changing the permissions \n");
         bumount();
 
         return FAILURE;
     }
+
+    if (bumount() == FAILURE) {
+        return FAILURE;
+    }
+
+    return SUCCESS;
 }

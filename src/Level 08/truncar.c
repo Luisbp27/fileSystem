@@ -62,4 +62,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error while unmounting the virtual device\n");
         return FAILURE;
     }
+
+    return SUCCESS;
 }

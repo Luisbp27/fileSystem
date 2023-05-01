@@ -30,11 +30,12 @@ int main (int argc, char **argv) {
     // Creating the directory
     int error;
     if ((error = mi_creat(argv[3], perms)) < 0) {
-        mostrar_error_buscar_entrada(error);
         return FAILURE;
     }
 
-    bumount();
+    if (bumount() == FAILURE) {
+        return FAILURE;
+    }
 
     return SUCCESS;
 }

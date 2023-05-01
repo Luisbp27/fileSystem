@@ -37,13 +37,14 @@ int main(int argc, char **argv) {
 
     // Creating the directory
     if (mi_creat(argv[3], atoi(argv[2])) == FAILURE) {
-        fprintf(stderr, "Error creating the directory \n");
         bumount();
 
         return FAILURE;
     }
 
-    bumount();
+    if (bumount() == FAILURE) {
+        return FAILURE;
+    }
 
     return SUCCESS;
 }

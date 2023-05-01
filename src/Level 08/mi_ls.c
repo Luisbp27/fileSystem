@@ -36,7 +36,6 @@ int main(int argc, char **argv) {
 
     // Reading the directory entries
     if (mi_dir(argv[2], buffer, &tipo) == FAILURE) {
-        fprintf(stderr, "Error reading the directory entries \n");
         bumount();
 
         return FAILURE;
@@ -53,7 +52,9 @@ int main(int argc, char **argv) {
     printf("TIPO\tPERMISOS\tMTIME\t\tTAMAÑO\tNOMBRE\n");
     printf("-----------------------------------------------------\n%s", buffer);
 
-    bumount();
+    if (bumount() == FAILURE) {
+        return FAILURE;
+    }
 
     return SUCCESS;
 }
