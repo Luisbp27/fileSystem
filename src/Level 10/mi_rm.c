@@ -10,19 +10,16 @@ int main(int argc, char **argv) {
 
     // Mount disk
     if (bmount(argv[1]) == FAILURE) {
-        fprintf(stderr, "Couldn't mount disk\n");
         return FAILURE;
     }
 
     // Remove file
     if (mi_unlink(argv[2]) == FAILURE) {
-        fprintf(stderr, "Couldn't remove file\n");
         return FAILURE;
     }
 
     // Unmount disk
     if (bumount() == FAILURE) {
-        fprintf(stderr, "Couldn't unmount disk\n");
         return FAILURE;
     }
 

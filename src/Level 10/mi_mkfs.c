@@ -70,8 +70,6 @@ int main(int argc, char **argv) {
 
     // Unmount the virtual device
     if (bumount() == FAILURE) {
-        fprintf(stderr, "An error ocurred while unmounting the system.\n");
-
         return FAILURE;
     }
 

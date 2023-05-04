@@ -22,7 +22,6 @@ int main(int argc, char *argv[]) {
     }
 
     if (bumount() == FAILURE) {
-        fprintf(stderr, "Error while unmounting the virtual device\n");
         return FAILURE;
     }
 
