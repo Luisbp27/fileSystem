@@ -1,5 +1,8 @@
 #include "directorios.h"
 
+static struct UltimaEntrada UltimaEntrada[CACHE];
+int MAX_CACHE = CACHE;
+
 static struct UltimaEntrada UltimaEntradaEscritura;
 
 /**
@@ -382,30 +385,49 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
+    
+    int error = 0;
+    int b = 0;
+
+    // Cache traversal to check if the write is on a previous inode
+    for (int i = 0; i < (MAX_CACHE - 1); i++) {
+        if (strcmp(camino, UltimaEntrada[i].camino) == 0) {
+            p_inodo = UltimaEntrada[i].p_inodo;
+            b = 1;
+            break;
+        }
+    }
 
     // Check if the last entry is the same as the current one
-    if (strcmp(UltimaEntradaEscritura.camino, camino) == 0) {
-        // If it is, we don't need to search for the inode
-        p_inodo = UltimaEntradaEscritura.p_inodo;
-
-        #if DEBUG9
-            fprintf(stderr, "\n [mi_write() → Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n");
-        #endif
-
-    } else {
-        int error;
-        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2)) < 0) { 
-            mostrar_error_buscar_entrada(error);
-            return FAILURE;
+    if (!b) {
+        // Get the inode 
+        error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
+        if (error < 0) {
+            return error;
         }
 
-        // Save the last entry
-        strcpy(UltimaEntradaEscritura.camino, camino);
-        UltimaEntradaEscritura.p_inodo = p_inodo;
+        // If the cache is not full, we add the new entry
+        if (MAX_CACHE > 0) {
+            strcpy(UltimaEntrada[CACHE - MAX_CACHE].camino, camino);
+            UltimaEntrada[CACHE - MAX_CACHE].p_inodo = p_inodo;
+            --MAX_CACHE;
 
-        #if DEBUG9
-            fprintf(stderr, "\n [mi_write() -> Actualizamos la caché de escritura] \n");
-        #endif
+            #if DEBUG9
+                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+            #endif
+        } else { // FIFO
+            for (int i = 0; i < CACHE - 1; i++) {
+                strcpy(UltimaEntrada[i].camino, UltimaEntrada[i + 1].camino);
+                UltimaEntrada[i].p_inodo = UltimaEntrada[i + 1].p_inodo;
+            }
+
+            strcpy(UltimaEntrada[CACHE - 1].camino, camino);
+            UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
+
+            #if DEBUG9
+                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+            #endif
+        }
     }
 
     // Write the data

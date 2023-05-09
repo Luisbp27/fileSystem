@@ -28,8 +28,7 @@ int main(int argc, char **argv) {
     }
 
     // Buffer to store the directory entries
-    char buffer[TAMBUFFER];
-    memset(buffer, 0, TAMBUFFER);
+    char buffer[TAMBUFFER] = {0};
 
     // Type of the entry
     char tipo;
@@ -37,14 +36,6 @@ int main(int argc, char **argv) {
     // Reading the directory entries
     int total = mi_dir(argv[2], buffer, &tipo);
     if (total == FAILURE) {
-        bumount();
-
-        return FAILURE;
-    }
-
-    // Checking if the path ends in / and if it is a directory
-    if ((argv[2][(strlen(argv[2])) - 1] != '/') && (tipo == 'd')) {
-        fprintf(stderr, "The path must end in / to list a directory \n");
         bumount();
 
         return FAILURE;
