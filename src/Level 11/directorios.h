@@ -29,7 +29,7 @@
 #define TAMNOMBRE 60
 #define PROFUNDIDAD 32
 
-#define CACHE 10
+#define MAX_CACHE 10
 
 struct entrada {
     char nombre[TAMNOMBRE];
