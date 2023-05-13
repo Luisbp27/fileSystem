@@ -224,9 +224,55 @@ int mi_creat(const char *camino, unsigned char permisos) {
     return EXIT_SUCCESS;
 }
 
-int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
+void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrada) {
     struct tm *tm;
+    char time[100];
+    // An unsigned int can have 10 digits at max
+    char tamEnBytes[10];
 
+    // Type
+    if (inodo->tipo == 'd') {
+        strcat(buffer, MAGENTA);
+        strcat(buffer, "d");
+    } else {
+        strcat(buffer, CYAN);
+        strcat(buffer, "f");
+    }
+    strcat(buffer, "\t");
+
+    // Perms
+    strcat(buffer, BLUE);
+    strcat(buffer, ((inodo->permisos & 4) == 4) ? "r" : "-");
+    strcat(buffer, ((inodo->permisos & 2) == 2) ? "w" : "-");
+    strcat(buffer, ((inodo->permisos & 1) == 1) ? "x" : "-");
+    strcat(buffer, "\t");
+
+    // mTime
+    strcat(buffer, YELLOW);
+    tm = localtime(&inodo->mtime);
+    sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    strcat(buffer, time);
+    strcat(buffer, "\t");
+
+    // Tamaño
+    strcat(buffer, LBLUE);
+    sprintf(tamEnBytes, "%d", inodo->tamEnBytesLog);
+    strcat(buffer, tamEnBytes);
+    strcat(buffer, "\t");
+
+    // Nombre
+    strcat(buffer, LRED);
+    strcat(buffer, entrada->nombre);
+    while ((strlen(buffer) % TAMFILA) != 0) {
+        strcat(buffer, " ");
+    }
+
+    strcat(buffer, RESET);
+    // Preparamos el string para la siguiente entrada}
+    strcat(buffer, "\n");
+}
+
+int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
@@ -246,10 +292,6 @@ int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
     if ((inodo.permisos & 4) != 4) {
         return -1;
     }
-
-    char time[100];
-    // An unsigned int can have 10 digits at max
-    char tamEnBytes[10];
 
     if (leer_inodo(p_inodo, &inodo) == FAILURE) {
         return FAILURE;
@@ -273,45 +315,7 @@ int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
             }
 
             if (extended) {
-                // Type
-                if (inodo.tipo == 'd') {
-                    strcat(buffer, MAGENTA);
-                    strcat(buffer, "d");
-                } else {
-                    strcat(buffer, CYAN);
-                    strcat(buffer, "f");
-                }
-                strcat(buffer, "\t");
-
-                // Perms
-                strcat(buffer, BLUE);
-                strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
-                strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
-                strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
-                strcat(buffer, "\t");
-
-                // mTime
-                strcat(buffer, YELLOW);
-                tm = localtime(&inodo.mtime);
-                sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-                strcat(buffer, time);
-                strcat(buffer, "\t");
-
-                // Tamaño
-                strcat(buffer, LBLUE);
-                sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
-                strcat(buffer, tamEnBytes);
-                strcat(buffer, "\t");
-
-                // Nombre
-                strcat(buffer, LRED);
-                strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
-                while ((strlen(buffer) % TAMFILA) != 0) {
-                    strcat(buffer, " ");
-                }
-
-                strcat(buffer, RESET);
-                strcat(buffer, "\n"); // Preparamos el string para la siguiente entrada
+                print_entrada_extended(buffer, &inodo, &entradas[i % (BLOCKSIZE / sizeof(struct entrada))]);
             } else {
                 if (inodo.tipo == 'd') {
                     strcat(buffer, MAGENTA);
@@ -335,42 +339,7 @@ int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
         mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada));
         leer_inodo(entrada.ninodo, &inodo);
 
-        // Tipo
-        strcat(buffer, CYAN);
-        strcat(buffer, "f");
-
-        strcat(buffer, "\t");
-
-        // Permisos
-        strcat(buffer, BLUE);
-        strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
-        strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
-        strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
-        strcat(buffer, "\t");
-
-        // mTime
-        strcat(buffer, YELLOW);
-        tm = localtime(&inodo.mtime);
-        sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-        strcat(buffer, time);
-        strcat(buffer, "\t");
-
-        // Tamaño
-        strcat(buffer, LBLUE);
-        sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
-        strcat(buffer, tamEnBytes);
-        strcat(buffer, "\t");
-
-        // Nombre
-        strcat(buffer, LRED);
-        strcat(buffer, entrada.nombre);
-        while ((strlen(buffer) % TAMFILA) != 0) {
-            strcat(buffer, " ");
-        }
-
-        // Final
-        strcat(buffer, RESET);
-        strcat(buffer, "\n");
+        print_entrada_extended(buffer, &inodo, &entrada);
     }
 
     return nEntradas;
