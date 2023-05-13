@@ -45,7 +45,9 @@ int main(int argc, char **argv) {
     }
 
 #if DEBUGIMPORTANT
-    printf("Total: %d \n", total);
+    if (tipo == 'd') {
+            printf("Total: %d \n", total);
+    }
 #endif
 
     if ((total != 0 && extended) || tipo == 'f') {
