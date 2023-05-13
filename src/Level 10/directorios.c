@@ -1,8 +1,7 @@
 #include "directorios.h"
 
 static struct UltimaEntrada UltimaEntrada[CACHE];
-int MAX_CACHE = CACHE;
-
+int cachePtr = CACHE;
 
 /**
  * This method extracts the path of a file or directory from a given path.
@@ -415,7 +414,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     int b = 0;
 
     // Cache traversal to check if the write is on a previous inode
-    for (int i = 0; i < (MAX_CACHE - 1); i++) {
+    for (int i = 0; i < (cachePtr - 1); i++) {
         if (strcmp(camino, UltimaEntrada[i].camino) == 0) {
             p_inodo = UltimaEntrada[i].p_inodo;
             b = 1;
@@ -432,14 +431,14 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
         }
 
         // If the cache is not full, we add the new entry
-        if (MAX_CACHE > 0) {
-            strcpy(UltimaEntrada[CACHE - MAX_CACHE].camino, camino);
-            UltimaEntrada[CACHE - MAX_CACHE].p_inodo = p_inodo;
-            --MAX_CACHE;
+        if (cachePtr > 0) {
+            strcpy(UltimaEntrada[CACHE - cachePtr].camino, camino);
+            UltimaEntrada[CACHE - cachePtr].p_inodo = p_inodo;
+            --cachePtr;
 
-            #if DEBUG9
-                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
-            #endif
+#if DEBUG9
+            fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+#endif
         } else { // FIFO
             // Shift the cache
             for (int i = 0; i < CACHE - 1; i++) {
@@ -451,9 +450,9 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             strcpy(UltimaEntrada[CACHE - 1].camino, camino);
             UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
 
-            #if DEBUG9
-                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
-            #endif
+#if DEBUG9
+            fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+#endif
         }
     }
 
@@ -485,16 +484,16 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     int b = 0;
 
     // Cache traversal to check if the read is on a previous inode
-    for (int i = 0; i < (MAX_CACHE - 1); i++) {
+    for (int i = 0; i < (cachePtr - 1); i++) {
         // If the entry is found, we use the cache instead of calling buscar_entrada()
         if (strcmp(camino, UltimaEntrada[i].camino) == 0) {
             p_inodo = UltimaEntrada[i].p_inodo;
             b = 1;
-            
-            #if DEBUG9
-                fprintf(stderr, "\n [mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
-            #endif
-            
+
+#if DEBUG9
+            fprintf(stderr, "\n [mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
+#endif
+
             break;
         }
     }
@@ -507,14 +506,14 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
         }
 
         // If the cache is not full, we add the new entry
-        if (MAX_CACHE > 0) {
-            strcpy(UltimaEntrada[CACHE - MAX_CACHE].camino, camino);
-            UltimaEntrada[CACHE - MAX_CACHE].p_inodo = p_inodo;
-            --MAX_CACHE;
+        if (cachePtr > 0) {
+            strcpy(UltimaEntrada[CACHE - cachePtr].camino, camino);
+            UltimaEntrada[CACHE - cachePtr].p_inodo = p_inodo;
+            --cachePtr;
 
-            #if DEBUG9
-                fprintf(stderr, "\n [mi_read() → Actualizamos la caché de lectura]\n");
-            #endif
+#if DEBUG9
+            fprintf(stderr, "\n [mi_read() → Actualizamos la caché de lectura]\n");
+#endif
         } else { // FIFO
             // Shift the cache
             for (int i = 0; i < CACHE - 1; i++) {
@@ -526,9 +525,9 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
             strcpy(UltimaEntrada[CACHE - 1].camino, camino);
             UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
 
-            #if DEBUG9
-                    fprintf(stderr, "\n [mi_read() -> Actualizamos la caché de lectura] \n");
-            #endif
+#if DEBUG9
+            fprintf(stderr, "\n [mi_read() -> Actualizamos la caché de lectura] \n");
+#endif
         }
     }
 
