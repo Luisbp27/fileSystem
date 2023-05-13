@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     printf("Total: %d \n", total);
 #endif
 
-    if (total != 0 && extended) {
+    if ((total != 0 && extended) || tipo == 'f') {
         printf("TIPO\tPERMISOS\tMTIME\t\tTAMAÑO\tNOMBRE\n");
         printf("-----------------------------------------------------\n");
     }

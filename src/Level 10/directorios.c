@@ -256,76 +256,121 @@ int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
     }
     *tipo = inodo.tipo;
 
-    // Buffer de salida
-    struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
-    memset(&entradas, 0, sizeof(struct entrada));
+    if (inodo.tipo == 'd') {
+        // Buffer de salida
+        struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
+        memset(&entradas, 0, sizeof(struct entrada));
 
-    nEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
+        nEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
 
-    int offset = 0;
-    offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+        int offset = 0;
+        offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
 
-    // Build each entry
-    for (int i = 0; i < nEntradas; i++) {
-        if (leer_inodo(entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo) == FAILURE) {
-            return FAILURE;
-        }
+        // Build each entry
+        for (int i = 0; i < nEntradas; i++) {
+            if (leer_inodo(entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo) == FAILURE) {
+                return FAILURE;
+            }
 
-        if (extended) {
-            // Type
-            if (inodo.tipo == 'd') {
-                strcat(buffer, MAGENTA);
-                strcat(buffer, "d");
+            if (extended) {
+                // Type
+                if (inodo.tipo == 'd') {
+                    strcat(buffer, MAGENTA);
+                    strcat(buffer, "d");
+                } else {
+                    strcat(buffer, CYAN);
+                    strcat(buffer, "f");
+                }
+                strcat(buffer, "\t");
+
+                // Perms
+                strcat(buffer, BLUE);
+                strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
+                strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
+                strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
+                strcat(buffer, "\t");
+
+                // mTime
+                strcat(buffer, YELLOW);
+                tm = localtime(&inodo.mtime);
+                sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+                strcat(buffer, time);
+                strcat(buffer, "\t");
+
+                // Tamaño
+                strcat(buffer, LBLUE);
+                sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
+                strcat(buffer, tamEnBytes);
+                strcat(buffer, "\t");
+
+                // Nombre
+                strcat(buffer, LRED);
+                strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
+                while ((strlen(buffer) % TAMFILA) != 0) {
+                    strcat(buffer, " ");
+                }
+
+                strcat(buffer, RESET);
+                strcat(buffer, "\n"); // Preparamos el string para la siguiente entrada
             } else {
-                strcat(buffer, CYAN);
-                strcat(buffer, "f");
-            }
-            strcat(buffer, "\t");
+                if (inodo.tipo == 'd') {
+                    strcat(buffer, MAGENTA);
+                } else {
+                    strcat(buffer, CYAN);
+                }
 
-            // Perms
-            strcat(buffer, BLUE);
-            strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
-            strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
-            strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
-            strcat(buffer, "\t");
-
-            // mTime
-            strcat(buffer, YELLOW);
-            tm = localtime(&inodo.mtime);
-            sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-            strcat(buffer, time);
-            strcat(buffer, "\t");
-
-            // Tamaño
-            strcat(buffer, LBLUE);
-            sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
-            strcat(buffer, tamEnBytes);
-            strcat(buffer, "\t");
-
-            // Nombre
-            strcat(buffer, LRED);
-            strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
-            while ((strlen(buffer) % TAMFILA) != 0) {
-                strcat(buffer, " ");
+                strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
+                strcat(buffer, RESET);
+                strcat(buffer, "\t");
             }
 
-            strcat(buffer, RESET);
-            strcat(buffer, "\n"); // Preparamos el string para la siguiente entrada
-        } else {
-            if (inodo.tipo == 'd') {
-                strcat(buffer, MAGENTA);
-            } else {
-                strcat(buffer, CYAN);
+            if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0) {
+                offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
             }
+        }
+    } else {
+        nEntradas = 1;
 
-            strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
-            strcat(buffer, RESET);
-            strcat(buffer, "\t");
+        struct entrada entrada;
+        mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada));
+        leer_inodo(entrada.ninodo, &inodo);
+
+        // Tipo
+        strcat(buffer, CYAN);
+        strcat(buffer, "f");
+
+        strcat(buffer, "\t");
+
+        // Permisos
+        strcat(buffer, BLUE);
+        strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
+        strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
+        strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
+        strcat(buffer, "\t");
+
+        // mTime
+        strcat(buffer, YELLOW);
+        tm = localtime(&inodo.mtime);
+        sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+        strcat(buffer, time);
+        strcat(buffer, "\t");
+
+        // Tamaño
+        strcat(buffer, LBLUE);
+        sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
+        strcat(buffer, tamEnBytes);
+        strcat(buffer, "\t");
+
+        // Nombre
+        strcat(buffer, LRED);
+        strcat(buffer, entrada.nombre);
+        while ((strlen(buffer) % TAMFILA) != 0) {
+            strcat(buffer, " ");
         }
 
-        if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0) {
-            offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
-        }
+        // Final
+        strcat(buffer, RESET);
+        strcat(buffer, "\n");
     }
 
     return nEntradas;
