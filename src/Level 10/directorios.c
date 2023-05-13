@@ -3,7 +3,6 @@
 static struct UltimaEntrada UltimaEntrada[CACHE];
 int MAX_CACHE = CACHE;
 
-static struct UltimaEntrada UltimaEntradaEscritura;
 
 /**
  * This method extracts the path of a file or directory from a given path.
@@ -438,28 +437,30 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             UltimaEntrada[CACHE - MAX_CACHE].p_inodo = p_inodo;
             --MAX_CACHE;
 
-#if DEBUG9
-            fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
-#endif
+            #if DEBUG9
+                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+            #endif
         } else { // FIFO
+            // Shift the cache
             for (int i = 0; i < CACHE - 1; i++) {
                 strcpy(UltimaEntrada[i].camino, UltimaEntrada[i + 1].camino);
                 UltimaEntrada[i].p_inodo = UltimaEntrada[i + 1].p_inodo;
             }
 
+            // Add the new entry
             strcpy(UltimaEntrada[CACHE - 1].camino, camino);
             UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
 
-#if DEBUG9
-            fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
-#endif
+            #if DEBUG9
+                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+            #endif
         }
     }
 
     // Write the data
     int bytes = mi_write_f(p_inodo, buf, offset, nbytes);
     if (bytes == FAILURE) {
-        return FAILURE;
+        return ERROR_PERMISO_ESCRITURA;
     }
 
     return bytes;
@@ -480,35 +481,61 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
 
-    // Check if the last entry is the same as the current one
-    if (strcmp(camino, UltimaEntradaEscritura.camino) == 0) { // vemos si es escritura sobre el mismo inodo
-        // If it is, we don't need to search for the inode
-        p_inodo = UltimaEntradaEscritura.p_inodo;
+    int error = 0;
+    int b = 0;
 
-#if DEBUG9
-        fprintf(stderr, "\n [mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
-#endif
+    // Cache traversal to check if the read is on a previous inode
+    for (int i = 0; i < (MAX_CACHE - 1); i++) {
+        // If the entry is found, we use the cache instead of calling buscar_entrada()
+        if (strcmp(camino, UltimaEntrada[i].camino) == 0) {
+            p_inodo = UltimaEntrada[i].p_inodo;
+            b = 1;
+            
+            #if DEBUG9
+                fprintf(stderr, "\n [mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
+            #endif
+            
+            break;
+        }
+    }
 
-    } else {
-        int error;
-        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) { // Permisos 4 para lectura
-            mostrar_error_buscar_entrada(error);
-            return FAILURE;
+    if (!b) {
+        // Get the inode
+        error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
+        if (error < 0) {
+            return error;
         }
 
-        // Save the last entry
-        strcpy(UltimaEntradaEscritura.camino, camino);
-        UltimaEntradaEscritura.p_inodo = p_inodo;
+        // If the cache is not full, we add the new entry
+        if (MAX_CACHE > 0) {
+            strcpy(UltimaEntrada[CACHE - MAX_CACHE].camino, camino);
+            UltimaEntrada[CACHE - MAX_CACHE].p_inodo = p_inodo;
+            --MAX_CACHE;
 
-#if DEBUG9
-        fprintf(stderr, "\n [mi_read() -> Actualizamos la caché de lectura] \n");
-#endif
+            #if DEBUG9
+                fprintf(stderr, "\n [mi_read() → Actualizamos la caché de lectura]\n");
+            #endif
+        } else { // FIFO
+            // Shift the cache
+            for (int i = 0; i < CACHE - 1; i++) {
+                strcpy(UltimaEntrada[i].camino, UltimaEntrada[i + 1].camino);
+                UltimaEntrada[i].p_inodo = UltimaEntrada[i + 1].p_inodo;
+            }
+
+            // Add the new entry
+            strcpy(UltimaEntrada[CACHE - 1].camino, camino);
+            UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
+
+            #if DEBUG9
+                    fprintf(stderr, "\n [mi_read() -> Actualizamos la caché de lectura] \n");
+            #endif
+        }
     }
 
     // Read the data
     int bytes = mi_read_f(p_inodo, buf, offset, nbytes);
     if (bytes == FAILURE) {
-        return FAILURE;
+        bytes = ERROR_PERMISO_LECTURA;
     }
 
     return bytes;
