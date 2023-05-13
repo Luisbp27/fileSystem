@@ -11,13 +11,16 @@ leer
 truncar
 permitir
 mi_mkdir
+mi_touch
 mi_chmod
 mi_ls
 mi_link
 mi_escribir
+mi_escribir_varios
 mi_cat
 mi_stat
 mi_rm
+mi_rmdir
 simulacion
 verificacion
 
