@@ -3,7 +3,7 @@
 int main(int argc, char **argv) {
     // Checking syntax
     if (argc < 5) {
-        fprintf(stderr, "Command syntax should be: mi_chmod <disco> <permisos> </ruta> \n");
+        fprintf(stderr, "Command syntax should be: mi_escribir <disco> </ruta> <texto> <offset> \n");
         return FAILURE;
     }
 
@@ -18,9 +18,9 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
-    #if DEBUGIMPORTANT
-        fprintf(stderr, "Longitud texto: %ld \n", strlen(argv[3]));
-    #endif
+#if DEBUGIMPORTANT
+    fprintf(stderr, "Longitud texto: %ld \n", strlen(argv[3]));
+#endif
 
     // Writing the file
     int bytes = mi_write(argv[2], argv[3], atoi(argv[4]), strlen(argv[3]));
@@ -33,9 +33,9 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
-    #if DEBUGIMPORTANT
-        fprintf(stderr, "Bytes escritos: %d \n", bytes);
-    #endif
+#if DEBUGIMPORTANT
+    fprintf(stderr, "Bytes escritos: %d \n", bytes);
+#endif
 
     return SUCCESS;
 }

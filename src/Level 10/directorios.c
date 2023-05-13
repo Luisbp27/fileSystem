@@ -224,7 +224,7 @@ int mi_creat(const char *camino, unsigned char permisos) {
     return EXIT_SUCCESS;
 }
 
-int mi_dir(const char *camino, char *buffer, char *tipo) {
+int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
     struct tm *tm;
 
     unsigned int p_inodo_dir = 0;
@@ -271,45 +271,57 @@ int mi_dir(const char *camino, char *buffer, char *tipo) {
             return FAILURE;
         }
 
-        // Type
-        if (inodo.tipo == 'd') {
-            strcat(buffer, MAGENTA);
-            strcat(buffer, "d");
+        if (extended) {
+            // Type
+            if (inodo.tipo == 'd') {
+                strcat(buffer, MAGENTA);
+                strcat(buffer, "d");
+            } else {
+                strcat(buffer, CYAN);
+                strcat(buffer, "f");
+            }
+            strcat(buffer, "\t");
+
+            // Perms
+            strcat(buffer, BLUE);
+            strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
+            strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
+            strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
+            strcat(buffer, "\t");
+
+            // mTime
+            strcat(buffer, YELLOW);
+            tm = localtime(&inodo.mtime);
+            sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+            strcat(buffer, time);
+            strcat(buffer, "\t");
+
+            // Tamaño
+            strcat(buffer, LBLUE);
+            sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
+            strcat(buffer, tamEnBytes);
+            strcat(buffer, "\t");
+
+            // Nombre
+            strcat(buffer, LRED);
+            strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
+            while ((strlen(buffer) % TAMFILA) != 0) {
+                strcat(buffer, " ");
+            }
+
+            strcat(buffer, RESET);
+            strcat(buffer, "\n"); // Preparamos el string para la siguiente entrada
         } else {
-            strcat(buffer, CYAN);
-            strcat(buffer, "f");
+            if (inodo.tipo == 'd') {
+                strcat(buffer, MAGENTA);
+            } else {
+                strcat(buffer, CYAN);
+            }
+
+            strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
+            strcat(buffer, RESET);
+            strcat(buffer, "\t");
         }
-        strcat(buffer, "\t");
-
-        // Perms
-        strcat(buffer, BLUE);
-        strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
-        strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
-        strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
-        strcat(buffer, "\t");
-
-        // mTime
-        strcat(buffer, YELLOW);
-        tm = localtime(&inodo.mtime);
-        sprintf(time, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-        strcat(buffer, time);
-        strcat(buffer, "\t");
-
-        // Tamaño
-        strcat(buffer, LBLUE);
-        sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
-        strcat(buffer, tamEnBytes);
-        strcat(buffer, "\t");
-
-        // Nombre
-        strcat(buffer, LRED);
-        strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
-        while ((strlen(buffer) % TAMFILA) != 0) {
-            strcat(buffer, " ");
-        }
-
-        strcat(buffer, RESET);
-        strcat(buffer, "\n"); // Preparamos el string para la siguiente entrada
 
         if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0) {
             offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
@@ -321,12 +333,12 @@ int mi_dir(const char *camino, char *buffer, char *tipo) {
 
 /**
  * This method changes the permisions of a file or directory
- * 
+ *
  * @param camino The path to the file or directory
  * @param permisos The new permisions
- * 
+ *
  * @return 0 if success, -1 if error
-*/
+ */
 int mi_chmod(const char *camino, unsigned char permisos) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
@@ -347,12 +359,12 @@ int mi_chmod(const char *camino, unsigned char permisos) {
 
 /**
  * This method allow us to visualize the information of the inode of the path given
- * 
+ *
  * @param camino The path to the file or directory
  * @param p_stat The struct where we will save the information
- * 
+ *
  * @return 0 if success, -1 if error
-*/
+ */
 int mi_stat(const char *camino, struct STAT *p_stat) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
@@ -373,19 +385,19 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
 
 /**
  * This method allow us to write in a file
- * 
+ *
  * @param camino The path to the file or directory
  * @param buf The buffer where we will save the information
  * @param offset The offset where we will start writing
  * @param nbytes The number of bytes to write
- * 
+ *
  * @return 0 if success, -1 if error
-*/
+ */
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
-    
+
     int error = 0;
     int b = 0;
 
@@ -400,7 +412,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
 
     // Check if the last entry is the same as the current one
     if (!b) {
-        // Get the inode 
+        // Get the inode
         error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
         if (error < 0) {
             return error;
@@ -412,9 +424,9 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             UltimaEntrada[CACHE - MAX_CACHE].p_inodo = p_inodo;
             --MAX_CACHE;
 
-            #if DEBUG9
-                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
-            #endif
+#if DEBUG9
+            fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+#endif
         } else { // FIFO
             for (int i = 0; i < CACHE - 1; i++) {
                 strcpy(UltimaEntrada[i].camino, UltimaEntrada[i + 1].camino);
@@ -424,9 +436,9 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             strcpy(UltimaEntrada[CACHE - 1].camino, camino);
             UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
 
-            #if DEBUG9
-                fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
-            #endif
+#if DEBUG9
+            fprintf(stderr, "[mi_write() → Actualizamos la caché de escritura]\n");
+#endif
         }
     }
 
@@ -441,32 +453,32 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
 
 /**
  * This method allow us to read from a file
- * 
+ *
  * @param camino The path to the file or directory
  * @param buf The buffer where we will save the information
  * @param offset The offset where we will start writing
  * @param nbytes The number of bytes to write
- * 
+ *
  * @return 0 if success, -1 if error
-*/
+ */
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
 
     // Check if the last entry is the same as the current one
-    if(strcmp(camino, UltimaEntradaEscritura.camino) == 0){ //vemos si es escritura sobre el mismo inodo
+    if (strcmp(camino, UltimaEntradaEscritura.camino) == 0) { // vemos si es escritura sobre el mismo inodo
         // If it is, we don't need to search for the inode
         p_inodo = UltimaEntradaEscritura.p_inodo;
-        
-        #if DEBUG9
-            fprintf(stderr, "\n [mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
-        #endif
+
+#if DEBUG9
+        fprintf(stderr, "\n [mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
+#endif
 
     } else {
         int error;
-        if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) { // Permisos 4 para lectura
-            mostrar_error_buscar_entrada(error);    
+        if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) { // Permisos 4 para lectura
+            mostrar_error_buscar_entrada(error);
             return FAILURE;
         }
 
@@ -474,9 +486,9 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
         strcpy(UltimaEntradaEscritura.camino, camino);
         UltimaEntradaEscritura.p_inodo = p_inodo;
 
-        #if DEBUG9
-            fprintf(stderr, "\n [mi_read() -> Actualizamos la caché de lectura] \n");
-        #endif
+#if DEBUG9
+        fprintf(stderr, "\n [mi_read() -> Actualizamos la caché de lectura] \n");
+#endif
     }
 
     // Read the data
@@ -490,12 +502,12 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 
 /**
  * This method create a link between input path directory and the respective inode specified in the other path directory
- * 
+ *
  * @param camino1 The path to the file or directory
  * @param camino2 The path to the file or directory
- * 
+ *
  * @return 0 if success, -1 if error
-*/
+ */
 int mi_link(const char *camino1, const char *camino2) {
 
     unsigned int p_inodo_dir1 = 0;
@@ -570,11 +582,11 @@ int mi_link(const char *camino1, const char *camino2) {
 
 /**
  * This method remove the link between input path directory and the respective inode specified in the other path directory
- * 
+ *
  * @param camino1 The path to the file or directory
- * 
+ *
  * @return 0 if success, -1 if error
-*/
+ */
 int mi_unlink(const char *camino) {
 
     super_bloque_t sb;
@@ -614,7 +626,7 @@ int mi_unlink(const char *camino) {
         int num_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
         // If the entry is not the last one, we need to move the last entry to the deleted entry
         if (p_entrada != num_entradas_inodo - 1) {
-            
+
             struct entrada entrada;
             // Read the last entry
             if (mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * (num_entradas_inodo - 1), sizeof(struct entrada)) < 0) {
