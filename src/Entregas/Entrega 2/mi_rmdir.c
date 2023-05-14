@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 
     // Check syntax
     if (argc < 3) {
-        fprintf(stderr, "Command syntax should be: mi_rmdir <disco> </ruta> \n");
+        fprintf(stderr, "Command syntax should be: ./mi_rmdir <disco> </ruta> \n");
         return FAILURE;
     }
 

@@ -26,7 +26,7 @@ void mostrar_buscar_entrada(char *camino, char reservar) {
 int main(int argc, char const *argv[]) {
     // Check the possible errors in params
     if (argc < 2) {
-        fprintf(stderr, "Not enough arguments. Usage: %s <device name> <block size>\n", argv[0]);
+        fprintf(stderr, "Command syntax should be: ./leer_sf <device name> <block size>\n");
         return FAILURE;
     }
 

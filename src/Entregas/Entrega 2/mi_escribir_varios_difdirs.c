@@ -14,7 +14,7 @@ int main(int argc, char **argv){
 
     //Comprobamos sintaxis
     if (argc!=3) {
-        fprintf(stderr, "Sintaxis: mi_escribir_varios_difdirs <nombre_dispositivo> <texto> \n");
+        fprintf(stderr, "Command syntax should be: ./mi_escribir_varios_difdirs <nombre_dispositivo> <texto> \n");
         exit(-1);
     }
 

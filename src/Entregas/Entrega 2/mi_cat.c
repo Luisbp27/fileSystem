@@ -4,7 +4,7 @@ int main (int argc, char **argv) {
 
     // Checking syntax
     if (argc < 3) {
-        fprintf(stderr, "Command syntax should be: mi_cat <disco> </ruta_fichero> \n");
+        fprintf(stderr, "Command syntax should be: ./mi_cat <disco> </ruta_fichero> \n");
         return FAILURE;
     }
 

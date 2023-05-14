@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 
     // Checking syntax
     if (argc < 3) {
-        fprintf(stderr, "Command syntax should be: mi_ls <disco> </ruta directorio> [-l]\n");
+        fprintf(stderr, "Command syntax should be: ./mi_ls <disco> </ruta directorio> [-l]\n");
         return FAILURE;
     }
 

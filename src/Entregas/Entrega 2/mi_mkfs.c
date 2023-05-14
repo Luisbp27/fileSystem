@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /**
- * Usage: ./my_mkfs <path to virtual device> <number of blocks to allocate>
+ * Usage: ./mi_mkfs <path to virtual device> <number of blocks to allocate>
  * 
  * @param argc
  * @param argv
@@ -11,9 +11,7 @@
 int main(int argc, char **argv) {
     // Check the possible errors in params
     if (argc < 3) {
-        fprintf(stderr,
-                "Not enough arguments. Usage: %s <device name> <block size>\n",
-                argv[0]);
+        fprintf(stderr, "Command syntax should be: ./mi_mkfs <nombre fichero> <tamaño bloque>\n");
 
         return FAILURE;
     }

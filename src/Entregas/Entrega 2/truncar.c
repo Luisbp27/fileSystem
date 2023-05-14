@@ -11,7 +11,7 @@
 int main(int argc, char *argv[]) {
     // Checking syntax
     if (argc < 3) {
-        fprintf(stderr, "Command syntax should be: truncar <nombre_dispositivo> <nº inodo> <nuevo tamaño>\n");
+        fprintf(stderr, "Command syntax should be: ./truncar <nombre_dispositivo> <nº inodo> <nuevo tamaño>\n");
         return FAILURE;
     }
 

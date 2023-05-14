@@ -3,7 +3,7 @@
 int main(int argc, char **argv) {
     // Checking syntax
     if (argc < 5) {
-        fprintf(stderr, "Command syntax should be: mi_escribir <disco> </ruta> <texto> <offset> \n");
+        fprintf(stderr, "Command syntax should be: ./mi_escribir <disco> </ruta> <texto> <offset> \n");
         return FAILURE;
     }
 

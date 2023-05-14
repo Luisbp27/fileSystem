@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
 
     // Checking syntax
     if (argc < 3) {
-        fprintf(stderr, "Command syntax should be: leer <nombre_dispositivo> <nº inodo>\n");
+        fprintf(stderr, "Command syntax should be: ./leer <nombre_dispositivo> <nº inodo>\n");
         return FAILURE;
     }
 

@@ -8,7 +8,7 @@ int main(int argc, char **argv){
 
     //Comprobamos sintaxis
     if (argc!=5) {
-    fprintf(stderr, "Sintaxis: mi_escribir_varios <nombre_dispositivo> </ruta_fichero> <texto> <offset>\n");
+    fprintf(stderr, "Command syntax should be: ./mi_escribir_varios <nombre_dispositivo> </ruta_fichero> <texto> <offset>\n");
     exit(-1);
     }
 
