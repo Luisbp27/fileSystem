@@ -1,17 +1,17 @@
 #include "directorios.h"
 
 /**
- * Method that removes a file from the file system.
- * 
+ * Method that removes a directory from the file system.
+ *
  * @param   camino  Path to the file to remove.
- * 
+ *
  * @return  0 if success, -1 otherwise.
  */
 int main(int argc, char **argv) {
 
     // Check syntax
-    if (argc < 2) {
-        fprintf(stderr, "Command syntax should be: mi_rm <disco> </ruta> \n");
+    if (argc < 3) {
+        fprintf(stderr, "Command syntax should be: mi_rmdir <disco> </ruta> \n");
         return FAILURE;
     }
 
@@ -26,12 +26,13 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
-    // Check if it is a file
-    if (stat.tipo != 'f') {
+    // Check if it is a directory
+    if (stat.tipo != 'd') {
+        fprintf(stderr, "The path is not a directory \n");
         return FAILURE;
     }
 
-    // Remove file
+    // Remove directory
     if (mi_unlink(argv[2]) == FAILURE) {
         return FAILURE;
     }
