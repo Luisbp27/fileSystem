@@ -455,11 +455,11 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             return error;
         }
 
-#if DEBUG9
+#if DEBUGIMPORTANT
         fprintf(stderr, "\n[mi_write() → Actualizamos la caché de escritura]\n");
 #endif
     }
-#if DEBUG9
+#if DEBUGIMPORTANT
     else {
         fprintf(stderr, "\n[mi_write() → Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n");
     }
@@ -501,11 +501,11 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
             return error;
         }
 
-#if DEBUG9
+#if DEBUGIMPORTANT
         fprintf(stderr, "\n[mi_read() → Actualizamos la caché de lectura]\n");
 #endif
     }
-#if DEBUG9
+#if DEBUGIMPORTANT
     else {
         fprintf(stderr, "\n[mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
     }
