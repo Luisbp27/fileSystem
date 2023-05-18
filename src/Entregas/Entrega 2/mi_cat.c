@@ -41,7 +41,7 @@ int main (int argc, char **argv) {
     }
     fprintf(stderr, "\n Total_leidos: %d \n", read_bytes_total);
 
-    if (bumount(disk) == FAILURE) {
+    if (bumount() == FAILURE) {
         return FAILURE;
     }
 
