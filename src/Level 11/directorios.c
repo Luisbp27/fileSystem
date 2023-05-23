@@ -113,8 +113,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
         while (num_entrada_inodo < cant_entradas_inodo && strcmp(inicial, entrada.nombre) != 0) {
             num_entrada_inodo++;
-            if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == FAILURE)
+            if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == FAILURE) {
                 return FAILURE;
+            }
         }
     }
 
@@ -140,13 +141,13 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
                 entrada.ninodo = reservar_inodo(tipo, permisos);
 
-#if DEBUGENTREGA1
-                printf("[buscar_entrada()->reservado inodo: %d tipo %c con permisos %d para %s]\n", entrada.ninodo, tipo, permisos, entrada.nombre);
-#endif
+                #if DEBUGENTREGA1
+                    printf("[buscar_entrada()->reservado inodo: %d tipo %c con permisos %d para %s]\n", entrada.ninodo, tipo, permisos, entrada.nombre);
+                #endif
 
-#if DEBUGENTREGA1
-                fprintf(stderr, "[buscar_entrada()->creada entrada: %s, %d] \n", inicial, entrada.ninodo);
-#endif
+                #if DEBUGENTREGA1
+                    fprintf(stderr, "[buscar_entrada()->creada entrada: %s, %d] \n", inicial, entrada.ninodo);
+                #endif
 
                 // Write the entry in the inode
                 if (mi_write_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == FAILURE) {
@@ -212,8 +213,8 @@ void mostrar_error_buscar_entrada(int error) {
 }
 
 int mi_creat(const char *camino, unsigned char permisos) {
-   
     mi_waitSem();
+
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
@@ -221,12 +222,13 @@ int mi_creat(const char *camino, unsigned char permisos) {
     int error;
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0) {
         mostrar_error_buscar_entrada(error);
+
         mi_signalSem();
         return FAILURE;
     }
-    mi_signalSem();
 
-    return EXIT_SUCCESS;
+    mi_signalSem();
+    return SUCCESS;
 }
 
 void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrada) {
@@ -273,7 +275,7 @@ void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrad
     }
 
     strcat(buffer, RESET);
-    // Preparamos el string para la siguiente entrada}
+    // Preparamos el string para la siguiente entrada
     strcat(buffer, "\n");
 }
 
@@ -462,19 +464,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
 #if DEBUG9
         fprintf(stderr, "\n[mi_write() → Actualizamos la caché de escritura]\n");
 #endif
-            }
-            }
-
-            // Add the new entry
-            strcpy(UltimaEntrada[CACHE - 1].camino, camino);
-            UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
-
     }
-
-            // Add the new entry
-            strcpy(UltimaEntrada[CACHE - 1].camino, camino);
-            UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
-
 #if DEBUG9
     else {
         fprintf(stderr, "\n[mi_write() → Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n");
@@ -520,19 +510,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 #if DEBUG9
         fprintf(stderr, "\n[mi_read() → Actualizamos la caché de lectura]\n");
 #endif
-            }
-            }
-
-            // Add the new entry
-            strcpy(UltimaEntrada[CACHE - 1].camino, camino);
-            UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
-
     }
-
-            // Add the new entry
-            strcpy(UltimaEntrada[CACHE - 1].camino, camino);
-            UltimaEntrada[CACHE - 1].p_inodo = p_inodo;
-
 #if DEBUG9
     else {
         fprintf(stderr, "\n[mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
@@ -559,8 +537,8 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
  * @return 0 if success, -1 if error
  */
 int mi_link(const char *camino1, const char *camino2) {
-
     mi_waitSem();
+    
     unsigned int p_inodo_dir1 = 0;
     unsigned int p_inodo1 = 0;
     unsigned int p_entrada1 = 0;
@@ -569,6 +547,7 @@ int mi_link(const char *camino1, const char *camino2) {
     int error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 6);
     if (error < 0) {
         mostrar_error_buscar_entrada(error);
+        
         mi_signalSem();
         return FAILURE;
     }
@@ -583,6 +562,7 @@ int mi_link(const char *camino1, const char *camino2) {
     // Check if the input path is a file
     if (inodo.tipo != 'f') {
         fprintf(stderr, "Error: The path camino1 is not a file.\n");
+        
         mi_signalSem();
         return FAILURE;
     }
@@ -590,6 +570,7 @@ int mi_link(const char *camino1, const char *camino2) {
     // Check if the input path has read permissions
     if ((inodo.permisos & 4) != 4) {
         fprintf(stderr, "Error: The path camino1 hasn't read perms.\n");
+
         mi_signalSem();
         return FAILURE;
     }
@@ -602,6 +583,7 @@ int mi_link(const char *camino1, const char *camino2) {
     error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6);
     if (error < 0) {
         mostrar_error_buscar_entrada(error);
+
         mi_signalSem();
         return FAILURE;
     }
@@ -636,8 +618,8 @@ int mi_link(const char *camino1, const char *camino2) {
         mi_signalSem();
         return FAILURE;
     }
-    mi_signalSem();
 
+    mi_signalSem();
     return SUCCESS;
 }
 
@@ -649,10 +631,11 @@ int mi_link(const char *camino1, const char *camino2) {
  * @return 0 if success, -1 if error
  */
 int mi_unlink(const char *camino) {
-
+    
     mi_waitSem();
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
+
         mi_signalSem();
         return FAILURE;
     }
@@ -665,6 +648,7 @@ int mi_unlink(const char *camino) {
     int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
     if (error < 0) {
         mostrar_error_buscar_entrada(error);
+
         mi_signalSem();
         return FAILURE;
     }
@@ -672,6 +656,7 @@ int mi_unlink(const char *camino) {
     // Read the inode
     inodo_t inodo;
     if (leer_inodo(p_inodo, &inodo) == FAILURE) {
+        
         mi_signalSem();
         return FAILURE;
     }
@@ -679,6 +664,7 @@ int mi_unlink(const char *camino) {
     // Check if the file is a directory and has content
     if ((inodo.tipo == 'd') && (inodo.tamEnBytesLog > 0)) {
         fprintf(stderr, "Error: The file is a directory and has content.\n");
+       
         mi_signalSem();
         return FAILURE;
 
