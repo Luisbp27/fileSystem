@@ -1,6 +1,10 @@
 #include "bloques.h"
+#include "semaforo_mutex_posix.h"
 
 static int descriptor = 0;
+
+static sem_t *mutex;
+static unsigned int in_critic_sec = 0;
 
 /**
  * Method to mount the virtual device, and since it is a file,
@@ -12,6 +16,10 @@ static int descriptor = 0;
  */
 int bmount(const char *path) {
     umask(000);
+
+    if ((mutex = initSem()) == SEM_FAILED) {
+        return FAILURE;
+    }
     // Open file descriptor
     descriptor = open(path, O_RDWR | O_CREAT, RW_PERMS);
 
@@ -29,6 +37,8 @@ int bmount(const char *path) {
  * @return 0 if the file was closed successfully, or -1 otherwise.
  */
 int bumount() {
+    deleteSem();
+
     // Try to close the file system
     if (close(descriptor) == FAILURE) {
         perror("Could not close the file system");
@@ -92,4 +102,20 @@ int bread(unsigned int nbloque, void *buf) {
     }
 
     return bytes;
+}
+
+void mi_waitSem() {
+    if (in_critic_sec == 0) { 
+        waitSem(mutex);
+    }
+
+    in_critic_sec++;
+}
+
+void mi_signalSem() {
+    in_critic_sec--;
+
+    if (in_critic_sec == 0) {
+        signalSem(mutex);
+    }
 }

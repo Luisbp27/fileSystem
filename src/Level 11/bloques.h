@@ -17,3 +17,6 @@ int bmount(const char *path);
 int bumount();
 int bwrite(unsigned int block, const void *buf);
 int bread(unsigned int n_block, void *buf);
+
+void mi_waitSem();
+void mi_signalSem();

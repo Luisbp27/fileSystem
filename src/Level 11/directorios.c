@@ -212,6 +212,8 @@ void mostrar_error_buscar_entrada(int error) {
 }
 
 int mi_creat(const char *camino, unsigned char permisos) {
+    mi_waitSem();
+
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
@@ -219,9 +221,12 @@ int mi_creat(const char *camino, unsigned char permisos) {
     int error;
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0) {
         mostrar_error_buscar_entrada(error);
+
+        mi_signalSem();
         return FAILURE;
     }
 
+    mi_signalSem();
     return EXIT_SUCCESS;
 }
 
@@ -531,6 +536,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
  * @return 0 if success, -1 if error
  */
 int mi_link(const char *camino1, const char *camino2) {
+    mi_waitSem();
 
     unsigned int p_inodo_dir1 = 0;
     unsigned int p_inodo1 = 0;
@@ -540,24 +546,30 @@ int mi_link(const char *camino1, const char *camino2) {
     int error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 6);
     if (error < 0) {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return FAILURE;
     }
 
     // Read the inode
     inodo_t inodo;
     if (leer_inodo(p_inodo1, &inodo) == FAILURE) {
+        mi_signalSem();
         return FAILURE;
     }
 
     // Check if the input path is a file
     if (inodo.tipo != 'f') {
         fprintf(stderr, "Error: The path camino1 is not a file.\n");
+
+        mi_signalSem();
         return FAILURE;
     }
 
     // Check if the input path has read permissions
     if ((inodo.permisos & 4) != 4) {
         fprintf(stderr, "Error: The path camino1 hasn't read perms.\n");
+
+        mi_signalSem();
         return FAILURE;
     }
 
@@ -569,11 +581,14 @@ int mi_link(const char *camino1, const char *camino2) {
     error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6);
     if (error < 0) {
         mostrar_error_buscar_entrada(error);
+
+        mi_signalSem();
         return FAILURE;
     }
 
     struct entrada entrada2;
     if (mi_read_f(p_inodo_dir2, &entrada2, sizeof(struct entrada) * (p_entrada2), sizeof(struct entrada)) < 0) {
+        mi_signalSem();
         return FAILURE;
     }
 
@@ -582,11 +597,13 @@ int mi_link(const char *camino1, const char *camino2) {
 
     // Write the link
     if (mi_write_f(p_inodo_dir2, &entrada2, sizeof(struct entrada) * (p_entrada2), sizeof(struct entrada)) < 0) {
+        mi_signalSem();
         return FAILURE;
     }
 
     // Frees the inode
     if (liberar_inodo(p_inodo2) == FAILURE) {
+        mi_signalSem();
         return FAILURE;
     }
 
@@ -596,9 +613,11 @@ int mi_link(const char *camino1, const char *camino2) {
 
     // Write the inode
     if (escribir_inodo(p_inodo1, &inodo) == FAILURE) {
+        mi_signalSem();
         return FAILURE;
     }
 
+    mi_signalSem();
     return SUCCESS;
 }
 
@@ -610,6 +629,7 @@ int mi_link(const char *camino1, const char *camino2) {
  * @return 0 if success, -1 if error
  */
 int mi_unlink(const char *camino) {
+    mi_waitSem();
 
     super_bloque_t sb;
     if (bread(POS_SB, &sb) == FAILURE) {
@@ -624,24 +644,30 @@ int mi_unlink(const char *camino) {
     int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
     if (error < 0) {
         mostrar_error_buscar_entrada(error);
+
+        mi_signalSem();
         return FAILURE;
     }
 
     // Read the inode
     inodo_t inodo;
     if (leer_inodo(p_inodo, &inodo) == FAILURE) {
+        mi_signalSem();
         return FAILURE;
     }
 
     // Check if the file is a directory and has content
     if ((inodo.tipo == 'd') && (inodo.tamEnBytesLog > 0)) {
         fprintf(stderr, "Error: The file is a directory and has content.\n");
+
+        mi_signalSem();
         return FAILURE;
 
     } else {
         // Read the directory inode
         inodo_t inodo_dir;
         if (leer_inodo(p_inodo_dir, &inodo_dir) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
@@ -652,17 +678,20 @@ int mi_unlink(const char *camino) {
             struct entrada entrada;
             // Read the last entry
             if (mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * (num_entradas_inodo - 1), sizeof(struct entrada)) < 0) {
+                mi_signalSem();
                 return FAILURE;
             }
 
             // Write the last entry in the deleted entry
             if (mi_write_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada)) < 0) {
+                mi_signalSem();
                 return FAILURE;
             }
         }
 
         // Delete the last entry
         if (mi_truncar_f(p_inodo_dir, sizeof(struct entrada) * (num_entradas_inodo - 1)) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
@@ -673,15 +702,18 @@ int mi_unlink(const char *camino) {
         // If the inode has no links, we need to free it
         if (inodo.nlinks == 0) {
             if (liberar_inodo(p_inodo) == FAILURE) {
+                mi_signalSem();
                 return FAILURE;
             }
         } else {
             // Write the inode
             if (escribir_inodo(p_inodo, &inodo) == FAILURE) {
+                mi_signalSem();
                 return FAILURE;
             }
         }
     }
 
+    mi_signalSem();
     return SUCCESS;
 }
