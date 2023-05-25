@@ -42,8 +42,8 @@ int main(int argc, char **argv) {
 
     // Upload the entries
     struct entrada entrada[num_entr];
-    int error;
-    if (error = mi_read(argv[2], entrada, 0, sizeof(entrada)) == FAILURE) {
+    int error = mi_read(argv[2], entrada, 0, sizeof(entrada));
+    if (error  == FAILURE) {
         mostrar_error_buscar_entrada(error);
         return FAILURE;
     }    
