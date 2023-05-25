@@ -211,6 +211,14 @@ void mostrar_error_buscar_entrada(int error) {
     }
 }
 
+/**
+ * This method create a file/ directory and its entries.
+ * 
+ * @param camino
+ * @param permisos
+ * 
+ * @return 0 if success, -1 otherwise
+*/
 int mi_creat(const char *camino, unsigned char permisos) {
     mi_waitSem();
 
@@ -278,6 +286,16 @@ void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrad
     strcat(buffer, "\n");
 }
 
+/**
+ * This method list the content of a directory.
+ * 
+ * @param camino
+ * @param buffer
+ * @param tipo
+ * @param extended
+ * 
+ * @return 0 if success, -1 otherwise
+*/
 int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;

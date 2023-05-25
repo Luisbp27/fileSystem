@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     char path[80];
     char tmp[100];
     strcpy(path, "/simul_");
-    //sprintf(tmp, "%d%02d%02d%02d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,  tm->tm_sec);
+    sprintf(tmp, "%d%02d%02d%02d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,  tm->tm_sec);
     strcat(path, tmp); 
     strcat(path, "/");
 
@@ -44,7 +44,8 @@ int main(int argc, char **argv) {
     }
 
     pid_t pid;
-    for (int proceso = 0; proceso <= NUMPROCESOS; proceso++) {
+    printf("*** SIMULACIÓN DE %d PROCESOS REALIZANDO CADA UNO %d ESCRITURAS ***\n", NUMPROCESOS, NUMESCRITURAS);
+    for (int proceso = 1; proceso <= NUMPROCESOS; proceso++) {
         pid = fork();
         // If it's the child
         if (pid == 0) { 
@@ -55,19 +56,19 @@ int main(int argc, char **argv) {
             // Creating the directory
             char name_dir[200];
             sprintf(name_dir, "%sproceso_%d/", path, getpid());
-            if (mi_creat(name_dir, 6) < 0) {
+            if (mi_creat(name_dir, 6) == FAILURE) {
                 bumount();
                 exit(0);
             }
 
             // Creating the file
-            char file[300];
+            char file[100];
             sprintf(file, "%sprueba.dat", name_dir);
-            if (mi_creat(file, 6) < 0) {
+            if (mi_creat(file, 6) == FAILURE) {
                 bumount();
                 exit(0);
             }
-            fprintf(stderr, "Fichero del proceso %i creado\n", proceso);
+            // fprintf(stderr, "Fichero del proceso %i creado\n", proceso);
 
             // Initialize random seed
             srand(time(NULL) + getpid());
@@ -93,6 +94,11 @@ int main(int argc, char **argv) {
 
                 // Sleeping in microseconds
                 usleep(50000);
+
+                // Check if the process has to end
+                if (nescritura == NUMESCRITURAS) {
+                    fprintf(stderr,"Proceso %d: Completadas %d escrituras en %s\n", proceso, NUMESCRITURAS, path);
+                }
             }
 
             bumount();
@@ -107,12 +113,11 @@ int main(int argc, char **argv) {
     while (acabados < NUMPROCESOS) {
         pause();
     }
+    // fprintf(stderr, "Total de procesos terminados: %d\n", acabados);
 
     if (bumount() == FAILURE) {
-        return FAILURE;
+        exit(0);
     }
-
-    fprintf(stderr, "Total de procesos terminados: %d\n", acabados);
 
     return SUCCESS;
 }

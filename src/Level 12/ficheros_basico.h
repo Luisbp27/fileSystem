@@ -9,7 +9,7 @@
 #define DEBUG7 0
 #define DEBUG8 0
 #define DEBUG9 0
-#define DEBUG12 1
+#define DEBUG12 0
 #define DEBUGENTREGA1 0
 #define DEBUGIMPORTANT 1
 
