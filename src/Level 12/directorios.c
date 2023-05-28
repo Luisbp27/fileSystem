@@ -46,7 +46,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
  * @param reservar
  * @param permisos
  *
- * @return 0 if the entry is found, -1 otherwise
+ * @return 
  */
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos) {
     struct entrada entrada = {
@@ -54,6 +54,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         .ninodo = 0,
     };
 
+    // Check if it is the root directory
     if (strcmp(camino_parcial, "/") == 0) {
         super_bloque_t sb;
         if (bread(POS_SB, &sb) == FAILURE) {
@@ -77,9 +78,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         return ERROR_CAMINO_INCORRECTO;
     }
 
-#if DEBUGENTREGA1
-    printf("[buscar_entrada()->inicial: %s, final: %s, reservar: %d]\n", inicial, final, reservar);
-#endif
+    #if DEBUGENTREGA1
+        printf("[buscar_entrada()->inicial: %s, final: %s, reservar: %d]\n", inicial, final, reservar);
+    #endif
 
     // Search for the entry in the root directory
     inodo_t inodo_dir;
@@ -113,8 +114,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
         while (num_entrada_inodo < cant_entradas_inodo && strcmp(inicial, entrada.nombre) != 0) {
             num_entrada_inodo++;
-            if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == FAILURE)
+            if (mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == FAILURE) {
                 return FAILURE;
+            }
         }
     }
 
@@ -211,14 +213,6 @@ void mostrar_error_buscar_entrada(int error) {
     }
 }
 
-/**
- * This method create a file/ directory and its entries.
- * 
- * @param camino
- * @param permisos
- * 
- * @return 0 if success, -1 otherwise
-*/
 int mi_creat(const char *camino, unsigned char permisos) {
     mi_waitSem();
 
@@ -235,7 +229,7 @@ int mi_creat(const char *camino, unsigned char permisos) {
     }
 
     mi_signalSem();
-    return EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrada) {
@@ -286,16 +280,6 @@ void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrad
     strcat(buffer, "\n");
 }
 
-/**
- * This method list the content of a directory.
- * 
- * @param camino
- * @param buffer
- * @param tipo
- * @param extended
- * 
- * @return 0 if success, -1 otherwise
-*/
 int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;

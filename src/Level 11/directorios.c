@@ -219,7 +219,7 @@ int mi_creat(const char *camino, unsigned char permisos) {
     unsigned int p_entrada = 0;
 
     int error;
-    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0) {
+    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) == FAILURE) {
         mostrar_error_buscar_entrada(error);
 
         mi_signalSem();
@@ -227,7 +227,7 @@ int mi_creat(const char *camino, unsigned char permisos) {
     }
 
     mi_signalSem();
-    return EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrada) {

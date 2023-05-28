@@ -100,7 +100,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     }
 
     inodo.mtime = time(NULL);
-
+    
     mi_waitSem();
     if (escribir_inodo(ninodo, &inodo) == FAILURE) {
         mi_signalSem();
@@ -131,16 +131,16 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         mi_signalSem();
         return FAILURE;
     }
-    mi_signalSem();
 
     // Check read perms
     if ((inodo.permisos & 4) != 4) {
+        mi_signalSem();
         return FAILURE;
     }
 
     // Update atime
     inodo.atime = time(NULL);
-    mi_waitSem();
+    
     if (escribir_inodo(ninodo, &inodo) == FAILURE) {
         mi_signalSem();
         return FAILURE;
@@ -266,6 +266,7 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
 
     inodo_t inodo;
     if (leer_inodo(ninodo, &inodo) == FAILURE) {
+        mi_signalSem();
         return FAILURE;
     }
 

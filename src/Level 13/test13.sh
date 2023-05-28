@@ -1,32 +1,42 @@
-# Luis Barca
-# test13.sh
-clear
+#!/bin/bash
+echo -e $'\n'"\e[91m-- Script Nivel 13 --\e[0m" $'\n'
 make clean
 make
 
-echo -e "\x1B[38;2;17;245;120m##############################################################\x1b[0m"
-echo -e "\x1B[38;2;17;245;120m                          SIMULACIÓN\x1b[0m"
-echo -e "\x1B[38;2;17;245;120m##############################################################\x1b[0m"
-echo -e "\x1B[38;2;17;245;120m$ ./mi_mkfs disco 100000\x1b[0m"
+#Creamos dispositivo
 ./mi_mkfs disco 100000
-echo
-echo -e "\x1B[38;2;17;245;120m$ ./simulacion disco /simul_20210524105645\x1b[0m"
-./simulacion disco /simul_20210524105645
-echo
-echo -e "\x1B[38;2;17;245;120m$ time ./verificacion disco /simul_20210524105645\x1b[0m"
-time ./verificacion disco /simul_20210524105645
-echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_cat disco /simul_20210524105645/informe.txt > resultado.txt\x1b[0m"
-./mi_cat disco /simul_20210524105645/informe.txt > resultado.txt
-echo
-echo -e "\x1B[38;2;17;245;120m$ ls -l resultado.txt\x1b[0m"
+
+#Sacamos la fecha
+current_date=`date +%Y%m%d%H%M%S` #yearmonthdayHourMinuteSecond
+#Simulamos
+echo  -e $'\n'"\e[94m-- Start simulación -- \e[0m"
+echo -e  "\e[32mtime ./simulacion disco\e[0m"
+time ./simulacion disco 
+
+#Modificamos el string para la verificación
+sim_dir="simul_"$current_date #simul_aaaammddhhmmss
+echo -e $'\n'"\e[36mDirectorio del script: \e[31m$sim_dir"
+
+#Script para comprimir los archivos y dejarlos listos para entregar
+echo -e $'\n'$'\n'"-- Verificación Nivel 13 --"
+echo -e "time ./verificacion disco /$sim_dir/\e[0m"
+#verificacion <nombre_dispositivo> <directorio_simulación>
+time ./verificacion disco /$sim_dir/
+
+#Guardamos el informe en resultado.txt
+echo -e $'\n'"./mi_cat disco /$sim_dir/informe.txt > resultado.txt\e[0m"
+./mi_cat disco /$sim_dir/informe.txt > resultado.txt
+
+#Revisamos si se ha creado resultado.txt
+echo -e $'\n'"ls -l resultado.txt\e[0m"
 ls -l resultado.txt
-echo
-echo -e "\x1B[38;2;17;245;120m$ cat resultado.txt\x1b[0m"
+
+#Mostramos el resultado
+echo -e $'\n'"\e[32mcat resultado.txt\e[0m"
 cat resultado.txt
-echo
-echo -e "\x1B[38;2;17;245;120m$ ./leer_sf disco\x1b[0m"
+
+#Leemos los 'stats' del disco
+echo -e $'\n'"\e[32m./leer_sf disco\e[0m"
 ./leer_sf disco
-echo
 
 make clean

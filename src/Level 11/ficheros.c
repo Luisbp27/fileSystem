@@ -14,7 +14,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     inodo_t inodo;
 
     if (leer_inodo(ninodo, &inodo) == FAILURE) {
-        mi_signalSem();
         return FAILURE;
     }
 
@@ -123,6 +122,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     int bytes_leidos = 0;
 
     inodo_t inodo;
+    mi_waitSem();
     if (leer_inodo(ninodo, &inodo) == FAILURE) {
         return FAILURE;
     }
@@ -134,8 +134,9 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
     // Update atime
     inodo.atime = time(NULL);
-    mi_waitSem();
+    
     if (escribir_inodo(ninodo, &inodo) == FAILURE) {
+        mi_signalSem();
         return FAILURE;
     }
     mi_signalSem();
