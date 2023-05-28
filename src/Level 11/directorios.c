@@ -227,7 +227,7 @@ int mi_creat(const char *camino, unsigned char permisos) {
     }
 
     mi_signalSem();
-    return EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrada) {
@@ -546,6 +546,7 @@ int mi_link(const char *camino1, const char *camino2) {
     int error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 6);
     if (error < 0) {
         mostrar_error_buscar_entrada(error);
+
         mi_signalSem();
         return FAILURE;
     }
@@ -697,7 +698,6 @@ int mi_unlink(const char *camino) {
 
         // Update the inode
         inodo.nlinks--;
-        inodo.ctime = time(NULL);
 
         // If the inode has no links, we need to free it
         if (inodo.nlinks == 0) {
@@ -706,6 +706,8 @@ int mi_unlink(const char *camino) {
                 return FAILURE;
             }
         } else {
+            // Update ctime if the inode has links
+            inodo.ctime = time(NULL);
             // Write the inode
             if (escribir_inodo(p_inodo, &inodo) == FAILURE) {
                 mi_signalSem();

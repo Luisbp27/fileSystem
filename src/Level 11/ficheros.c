@@ -14,7 +14,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     inodo_t inodo;
 
     if (leer_inodo(ninodo, &inodo) == FAILURE) {
-        mi_signalSem();
         return FAILURE;
     }
 
@@ -33,12 +32,15 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     mi_waitSem();
     int nb_fisico = traducir_bloque_inodo(&inodo, primerBL, 1);
     mi_signalSem();
+
+    // Read the first block
+    if (bread(nb_fisico, buf_bloque) == FAILURE) {
+        return FAILURE;
+    }
+
     // Fits in a single block
     if (primerBL == ultimoBL) {
-        if (bread(nb_fisico, buf_bloque) == FAILURE) {
-            return FAILURE;
-        }
-
+        
         memcpy(buf_bloque + desp1, buf_original, nbytes);
 
         if (bwrite(nb_fisico, buf_bloque) == FAILURE) {
@@ -48,10 +50,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bytes_escritos += nbytes;
 
     } else { // We need more than one block
-        // First logical block
-        if (bread(nb_fisico, buf_bloque) == FAILURE) {
-            return FAILURE;
-        }
 
         memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
 
@@ -67,7 +65,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             nb_fisico = traducir_bloque_inodo(&inodo, i, 1);
             mi_signalSem();
 
-            if (bwrite(nb_fisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE) == -1) {
+            if (bwrite(nb_fisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE) == FAILURE) {
                 return FAILURE;
             }
 
@@ -92,14 +90,18 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         bytes_escritos += desp2 + 1;
     }
 
-    if (inodo.tamEnBytesLog < bytes_escritos + offset) {
+    mi_waitSem();
+    if (leer_inodo(ninodo, &inodo) == FAILURE) {
+        return FAILURE;
+    }
+
+    if (inodo.tamEnBytesLog < (bytes_escritos + offset)) {
         inodo.tamEnBytesLog = bytes_escritos + offset;
         inodo.ctime = time(NULL);
     }
 
     inodo.mtime = time(NULL);
 
-    mi_waitSem();
     if (escribir_inodo(ninodo, &inodo) == FAILURE) {
         return FAILURE;
     }
@@ -123,6 +125,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     int bytes_leidos = 0;
 
     inodo_t inodo;
+    mi_waitSem();
     if (leer_inodo(ninodo, &inodo) == FAILURE) {
         return FAILURE;
     }
@@ -134,7 +137,8 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
     // Update atime
     inodo.atime = time(NULL);
-    mi_waitSem();
+
+    // Write the updated inode
     if (escribir_inodo(ninodo, &inodo) == FAILURE) {
         return FAILURE;
     }
