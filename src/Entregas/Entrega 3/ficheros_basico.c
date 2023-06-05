@@ -271,24 +271,21 @@ int reservar_bloque() {
         return FAILURE;
     }
 
+    if (bread(posBloqueMB, bufferMB) == FAILURE) {
+        return FAILURE;
+    }
+
     // Locate the first free block
-    int found = 0;
-    while (!found) {
+    while (memcmp(bufferMB, bufferAux, BLOCKSIZE) == 0 && posBloqueMB < sb.posUltimoBloqueMB) {
+        posBloqueMB++;
         if (bread(posBloqueMB, bufferMB) == FAILURE) {
             return FAILURE;
         }
-
-        if (memcmp(bufferMB, bufferAux, BLOCKSIZE) != 0) {
-            found = 1;
-            break;
-        }
-
-        posBloqueMB++;
     }
 
     // Locate the 0 byte inside the founded free block
     unsigned int posbyte = 0;
-    while (bufferMB[posbyte] == UCHAR_MAX) {
+    while (bufferMB[posbyte] == UCHAR_MAX && posbyte < BLOCKSIZE) {
         posbyte++;
     }
 
