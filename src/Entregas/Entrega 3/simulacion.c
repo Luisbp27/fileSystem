@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     char tmp[100];
     strcpy(path, "/simul_");
     sprintf(tmp, "%d%02d%02d%02d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,  tm->tm_sec);
-    strcat(path, tmp); 
+    strcat(path, tmp);
     strcat(path, "/");
 
     if (mi_creat(path, 6) == FAILURE) {
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     for (int proceso = 1; proceso <= NUMPROCESOS; proceso++) {
         pid = fork();
         // If it's the child
-        if (pid == 0) { 
+        if (pid == 0) {
             if (bmount(argv[1]) == FAILURE) {
                 return FAILURE;
             }

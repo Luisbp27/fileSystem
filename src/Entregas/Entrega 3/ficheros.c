@@ -18,10 +18,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         mi_signalSem();
         return FAILURE;
     }
-    mi_signalSem();
 
     // Check writing perms
     if ((inodo.permisos & 2) != 2) {
+        mi_signalSem();
         return FAILURE;
     }
 
@@ -32,18 +32,19 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
     unsigned char buf_bloque[BLOCKSIZE];
 
-    mi_waitSem();
     int nb_fisico = traducir_bloque_inodo(&inodo, primerBL, 1);
-    mi_signalSem();
+
     // Fits in a single block
     if (primerBL == ultimoBL) {
         if (bread(nb_fisico, buf_bloque) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
         memcpy(buf_bloque + desp1, buf_original, nbytes);
 
         if (bwrite(nb_fisico, buf_bloque) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
@@ -52,12 +53,14 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     } else { // We need more than one block
         // First logical block
         if (bread(nb_fisico, buf_bloque) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
         memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
 
         if (bwrite(nb_fisico, buf_bloque) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
@@ -65,11 +68,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
         // Intermediate logical blocks
         for (int i = primerBL + 1; i < ultimoBL; i++) {
-            mi_waitSem();
             nb_fisico = traducir_bloque_inodo(&inodo, i, 1);
-            mi_signalSem();
 
             if (bwrite(nb_fisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE) == -1) {
+                mi_signalSem();
                 return FAILURE;
             }
 
@@ -77,17 +79,17 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         }
 
         // Last logical block
-        mi_waitSem();
         nb_fisico = traducir_bloque_inodo(&inodo, ultimoBL, 1);
-        mi_signalSem();
 
         if (bread(nb_fisico, buf_bloque) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
         memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
 
         if (bwrite(nb_fisico, buf_bloque) == FAILURE) {
+            mi_signalSem();
             return FAILURE;
         }
 
@@ -100,12 +102,12 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     }
 
     inodo.mtime = time(NULL);
-    
-    mi_waitSem();
+
     if (escribir_inodo(ninodo, &inodo) == FAILURE) {
         mi_signalSem();
         return FAILURE;
     }
+
     mi_signalSem();
 
     return bytes_escritos;
@@ -132,20 +134,19 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         return FAILURE;
     }
 
-    // Check read perms
-    if ((inodo.permisos & 4) != 4) {
-        mi_signalSem();
-        return FAILURE;
-    }
-
     // Update atime
     inodo.atime = time(NULL);
-    
+
     if (escribir_inodo(ninodo, &inodo) == FAILURE) {
         mi_signalSem();
         return FAILURE;
     }
     mi_signalSem();
+
+    // Check read perms
+    if ((inodo.permisos & 4) != 4) {
+        return FAILURE;
+    }
 
     // Nothing else to write
     if (offset >= inodo.tamEnBytesLog) {
