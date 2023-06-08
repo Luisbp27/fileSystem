@@ -17,14 +17,22 @@ static unsigned int in_critic_sec = 0;
 int bmount(const char *path) {
     umask(000);
 
-    if ((mutex = initSem()) == SEM_FAILED) {
-        return FAILURE;
+    if (descriptor > 0) {
+        close(descriptor);
     }
+
     // Open file descriptor
     descriptor = open(path, O_RDWR | O_CREAT, RW_PERMS);
 
     if (descriptor == FAILURE) {
         perror("Could not open the file system");
+    }
+
+    if (!mutex) {
+        mutex = initSem();
+        if (mutex == SEM_FAILED) {
+            return FAILURE;
+        }
     }
 
     return descriptor;
@@ -37,13 +45,16 @@ int bmount(const char *path) {
  * @return 0 if the file was closed successfully, or -1 otherwise.
  */
 int bumount() {
-    deleteSem();
+
+    descriptor = close(descriptor);
 
     // Try to close the file system
-    if (close(descriptor) == FAILURE) {
+    if (descriptor == FAILURE) {
         perror("Could not close the file system");
         return FAILURE;
     }
+
+    deleteSem();
 
     return SUCCESS;
 }
@@ -105,7 +116,7 @@ int bread(unsigned int nbloque, void *buf) {
 }
 
 void mi_waitSem() {
-    if (in_critic_sec == 0) { 
+    if (in_critic_sec == 0) {
         waitSem(mutex);
     }
 
