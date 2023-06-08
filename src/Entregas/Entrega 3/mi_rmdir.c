@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 
     // Get file info
     struct STAT stat;
-    if (mi_stat(argv[2], &stat) == FAILURE) {
+    if (mi_stat(argv[2], &stat) < 0) {
         return FAILURE;
     }
 

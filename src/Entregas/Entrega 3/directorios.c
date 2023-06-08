@@ -396,7 +396,7 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
         return error;
     }
 
-    if (mi_stat_f(p_inodo, p_stat) == FAILURE) {
+    if (mi_stat_f(p_inodo, p_stat) < 0) {
         return FAILURE;
     }
 

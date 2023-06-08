@@ -3,7 +3,7 @@
 int remove_f(char *path, int recursive) {
     // Get file info
     struct STAT stat;
-    if (mi_stat(path, &stat) < FAILURE) {
+    if (mi_stat(path, &stat) < 0) {
         return FAILURE;
     }      
    
