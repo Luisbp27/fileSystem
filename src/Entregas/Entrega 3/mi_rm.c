@@ -37,7 +37,9 @@ int remove_f(char *path, int recursive) {
         for (int i = 0; i < nEntradas; i++) {
             char nombre[TAMNOMBRE];
             strcpy(nombre, path);
-            strcat(nombre, "/");
+            if (nombre[strlen(nombre) - 1] != '/') {
+                strcat(nombre, "/");
+            }
             strcat(nombre, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
 
             remove_f(nombre, recursive);
