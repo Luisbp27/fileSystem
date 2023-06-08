@@ -1,4 +1,5 @@
 #include "ficheros.h"
+#include <sys/time.h>
 
 // Directory/file name size, ext2 = 255
 #define TAMNOMBRE 60
@@ -29,16 +30,20 @@
 #define TAMNOMBRE 60
 #define PROFUNDIDAD 32
 
-#define MAX_CACHE 10
+#define LRU_CACHE 1
+#define MAX_CACHE 3
 
 struct entrada {
     char nombre[TAMNOMBRE];
     unsigned int ninodo;
 };
 
-struct UltimaEntrada {
+struct CacheEntry {
     char camino[TAMNOMBRE * PROFUNDIDAD];
     int p_inodo;
+#if LRU_CACHE
+    struct timeval time;
+#endif
 };
 
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo);

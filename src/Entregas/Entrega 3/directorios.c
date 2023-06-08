@@ -1,10 +1,8 @@
 #include "directorios.h"
 
-// Hybrid FIFO + LRU queue
-// FIFO because the first element to be added is the first one to be deleted
-// LRU because recently used elements are added back to the front, resseting their order in the deletion queue
-static struct UltimaEntrada entrada_cache[MAX_CACHE];
-int cachePtr = 0;
+static struct CacheEntry tabla_cache[MAX_CACHE];
+int cache_length = 0;
+int cache_start = 0;
 
 /**
  * This method extracts the path of a file or directory from a given path.
@@ -405,11 +403,39 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
     return p_inodo;
 }
 
+#if LRU_CACHE
+int timeval_compare(struct timeval t1, struct timeval t2) {
+    if (t1.tv_sec > t2.tv_sec) {
+        return 1;  // t1 is greater
+    } else if (t1.tv_sec < t2.tv_sec) {
+        return -1; // t2 is greater
+    } else {
+        if (t1.tv_usec > t2.tv_usec) {
+            return 1;  // t1 is greater
+        } else if (t1.tv_usec < t2.tv_usec) {
+            return -1; // t2 is greater
+        } else {
+            return 0;  // t1 and t2 are equal
+        }
+    }
+}
+#endif
+
 int cache_read(const char *camino, unsigned int *p_inodo) {
     // Cache traversal to check if the write is on a previous inode
-    for (int i = 0; i < cachePtr; i++) {
-        if (strcmp(camino, entrada_cache[i].camino) == 0) {
-            *p_inodo = entrada_cache[i].p_inodo;
+    for (int i_raw = cache_start; i_raw < cache_start + cache_length; i_raw++) {
+        // Table is treated like a circular vector, with a moving start position
+        // This is made this way for FIFO, but it doesnt interfere with LRU
+        int i = i_raw % cache_length;
+        if (strcmp(camino, tabla_cache[i].camino) == 0) {
+#if DEBUG9
+    fprintf(stderr, "[cache_read() -> Utilizamos cache %d: %s]\n", i, camino);
+#endif
+
+            *p_inodo = tabla_cache[i].p_inodo;
+#if LRU_CACHE
+            gettimeofday(&tabla_cache[i].time, NULL);
+#endif
             return 1;
         }
     }
@@ -417,23 +443,40 @@ int cache_read(const char *camino, unsigned int *p_inodo) {
     return 0;
 }
 
-void cache_update(const char *camino, unsigned int p_inodo) {
-    // Shift cache to push this entry, which now is the most recent one (LRU)
-    for (int i = cachePtr; i > 0; i--) {
-        // If this element has to be moved out of the queue, just dont copy it
-        if (cachePtr == MAX_CACHE) {
-            continue;
+void cache_add(const char *camino, unsigned int p_inodo) {
+    // Table is treated like a circular vector, with a moving start position
+    int replace_index;
+    if (cache_length < MAX_CACHE) {
+        replace_index = cache_length;
+        cache_length++;
+    } else {
+#if LRU_CACHE
+        // Entry with the minimum timeval will be the oldest one
+        struct CacheEntry *min_entry = &tabla_cache[0];
+        replace_index = 0;
+
+        for (int i = 1; i < cache_length; i++) {
+            // fprintf(stderr, "[i: %d] > max? %d\n", i, timeval_compare(tabla_cache[i].time, min_entry->time));
+            if (timeval_compare(tabla_cache[i].time, min_entry->time) < 0) {
+                min_entry = &tabla_cache[i];
+                replace_index = i;
+            }
         }
-
-        entrada_cache[i] = entrada_cache[i - 1];
+#else
+        replace_index = cache_start;
+        cache_start = (cache_start + 1) % cache_length;
+#endif
     }
 
-    strcpy(entrada_cache[0].camino, camino);
-    entrada_cache[0].p_inodo = p_inodo;
+#if DEBUG9
+    fprintf(stderr, "[cache_add() -> Reemplazamos cache %d: %s]\n", replace_index, camino);
+#endif
 
-    if (cachePtr < MAX_CACHE) {
-        cachePtr++;
-    }
+    strcpy(tabla_cache[replace_index].camino, camino);
+    tabla_cache[replace_index].p_inodo = p_inodo;
+#if LRU_CACHE
+    gettimeofday(&tabla_cache[replace_index].time, NULL);
+#endif
 }
 
 /**
@@ -462,17 +505,9 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             return error;
         }
 
-#if DEBUG9
-        fprintf(stderr, "\n[mi_write() → Actualizamos la caché de escritura]\n");
-#endif
+        cache_add(camino, p_inodo);
     }
-#if DEBUG9
-    else {
-        fprintf(stderr, "\n[mi_write() → Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n");
-    }
-#endif
 
-    cache_update(camino, p_inodo);
 
     // Write the data
     int bytes = mi_write_f(p_inodo, buf, offset, nbytes);
@@ -508,17 +543,8 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
             return error;
         }
 
-#if DEBUG9
-        fprintf(stderr, "\n[mi_read() → Actualizamos la caché de lectura]\n");
-#endif
+        cache_add(camino, p_inodo);
     }
-#if DEBUG9
-    else {
-        fprintf(stderr, "\n[mi_read() → Utilizamos la caché de lectura en vez de llamar a buscar_entrada()]\n");
-    }
-#endif
-
-    cache_update(camino, p_inodo);
 
     // Read the data
     int bytes = mi_read_f(p_inodo, buf, offset, nbytes);
