@@ -431,7 +431,6 @@ int cache_read(const char *camino, unsigned int *p_inodo) {
 #if DEBUG9
     fprintf(stderr, "[cache_read() -> Utilizamos cache %d: %s]\n", i, camino);
 #endif
-
             *p_inodo = tabla_cache[i].p_inodo;
 #if LRU_CACHE
             gettimeofday(&tabla_cache[i].time, NULL);
