@@ -1,10 +1,27 @@
 #include "bloques.h"
 #include "semaforo_mutex_posix.h"
 
-static int descriptor = 0;
-
 static sem_t *mutex;
 static unsigned int in_critic_sec = 0;
+
+#if MMAP
+static int tamSFM; // tamaño memoria compartida
+static void *ptrSFM; // puntero a memoria compartida
+
+void *do_mmap(int fd) {
+    struct stat st;
+    void *ptr;
+    fstat(fd, &st);
+    tamSFM = st.st_size;
+    if ((ptr = mmap(NULL, tamSFM, PROT_WRITE, MAP_SHARED, fd, 0)) == -1) {
+
+    }
+    return ptr;
+}
+#else
+static int descriptor = 0;
+#endif
+
 
 /**
  * Method to mount the virtual device, and since it is a file,
@@ -45,7 +62,6 @@ int bmount(const char *path) {
  * @return 0 if the file was closed successfully, or -1 otherwise.
  */
 int bumount() {
-
     descriptor = close(descriptor);
 
     // Try to close the file system

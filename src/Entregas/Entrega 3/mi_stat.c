@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     strftime(mdate, 24, "%a %d-%m-%Y %H:%M:%S", localtime(&stat.mtime));
 
     // Printing the stat
-    printf("Nº de inodo: %d \n", ninodo);
+    printf("\nNº de inodo: %d \n", ninodo);
     printf("Tipo: %c \n", stat.tipo);
     printf("Permisos: %d \n", stat.permisos);
     printf("atime: %s \n", adate);
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     printf("mtime: %s \n", mdate);
     printf("nlinks: %d \n", stat.nlinks);
     printf("tamEnBytesLog: %d \n", stat.tamEnBytesLog);
-    printf("numBloquesOcupados: %d \n", stat.numBloquesOcupados);
+    printf("numBloquesOcupados: %d \n\n", stat.numBloquesOcupados);
 
     if (bumount() == FAILURE) {
         return FAILURE;

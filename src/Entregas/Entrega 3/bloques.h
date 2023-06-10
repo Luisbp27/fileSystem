@@ -5,6 +5,7 @@
 #include <string.h>   // strerror()
 #include <sys/stat.h> //S_IRUSR, S_IWUSR
 #include <unistd.h>   // SEEK_SET, read(), write(), open(), close(), lseek()
+#include <sys/mman.h>
 
 #define BLOCKSIZE 1024
 #define RW_PERMS 0666
@@ -12,6 +13,8 @@
 // Error management
 #define SUCCESS 0
 #define FAILURE -1
+
+#define MMAP 0
 
 int bmount(const char *path);
 int bumount();

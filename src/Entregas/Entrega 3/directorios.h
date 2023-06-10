@@ -60,3 +60,5 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 
 int mi_link(const char *camino1, const char *camino2);
 int mi_unlink(const char *camino);
+
+int timeval_cmp(struct timeval t1, struct timeval t2);

@@ -78,9 +78,9 @@ int main(int argc, char **argv) {
                         info.nEscrituras++;
                     } else {
                         // Update the information of the first and last write
-                        if ((difftime(w_buffer[num_reg].fecha, info.PrimeraEscritura.fecha)) <= 0 && w_buffer[num_reg].nEscritura < info.PrimeraEscritura.nEscritura) {
+                        if ((timeval_cmp(w_buffer[num_reg].fecha, info.PrimeraEscritura.fecha)) <= 0 && w_buffer[num_reg].nEscritura < info.PrimeraEscritura.nEscritura) {
                             info.PrimeraEscritura = w_buffer[num_reg];
-                        } else if ((difftime(w_buffer[num_reg].fecha, info.UltimaEscritura.fecha)) >= 0 && w_buffer[num_reg].nEscritura > info.UltimaEscritura.nEscritura) {
+                        } else if ((timeval_cmp(w_buffer[num_reg].fecha, info.UltimaEscritura.fecha)) >= 0 && w_buffer[num_reg].nEscritura > info.UltimaEscritura.nEscritura) {
                             info.UltimaEscritura = w_buffer[num_reg];
                         } else if (w_buffer[num_reg].nRegistro < info.MenorPosicion.nRegistro) {
                             info.MenorPosicion = w_buffer[num_reg];
@@ -102,13 +102,13 @@ int main(int argc, char **argv) {
         char major_time[128];
         struct tm *tm_info;
 
-        tm_info = localtime(&info.PrimeraEscritura.fecha);
+        tm_info = localtime(&info.PrimeraEscritura.fecha.tv_sec);
         strftime(first_time, sizeof(first_time), "%a %Y-%m-%d %H:%M:%S", tm_info);
-        tm_info = localtime(&info.UltimaEscritura.fecha);
+        tm_info = localtime(&info.UltimaEscritura.fecha.tv_sec);
         strftime(last_time, sizeof(last_time), "%a %Y-%m-%d %H:%M:%S", tm_info);
-        tm_info = localtime(&info.MenorPosicion.fecha);
+        tm_info = localtime(&info.MenorPosicion.fecha.tv_sec);
         strftime(minor_time, sizeof(minor_time), "%a %Y-%m-%d %H:%M:%S", tm_info);
-        tm_info = localtime(&info.MayorPosicion.fecha);
+        tm_info = localtime(&info.MayorPosicion.fecha.tv_sec);
         strftime(major_time, sizeof(major_time), "%a %Y-%m-%d %H:%M:%S", tm_info);
 
         char buffer[BLOCKSIZE];
@@ -119,25 +119,25 @@ int main(int argc, char **argv) {
                 "Primera escritura",
                 info.PrimeraEscritura.nEscritura,
                 info.PrimeraEscritura.nRegistro,
-                asctime(localtime(&info.PrimeraEscritura.fecha)));
+                asctime(localtime(&info.PrimeraEscritura.fecha.tv_sec)));
 
         sprintf(buffer + strlen(buffer), "%s %i %i %s",
                 "Ultima escritura",
                 info.UltimaEscritura.nEscritura,
                 info.UltimaEscritura.nRegistro,
-                asctime(localtime(&info.UltimaEscritura.fecha)));
+                asctime(localtime(&info.UltimaEscritura.fecha.tv_sec)));
 
         sprintf(buffer + strlen(buffer), "%s %i %i %s",
                 "Menor posicion",
                 info.MenorPosicion.nEscritura,
                 info.MenorPosicion.nRegistro,
-                asctime(localtime(&info.MenorPosicion.fecha)));
+                asctime(localtime(&info.MenorPosicion.fecha.tv_sec)));
 
         sprintf(buffer + strlen(buffer), "%s %i %i %s",
                 "Mayor posicion",
                 info.MayorPosicion.nEscritura,
                 info.MayorPosicion.nRegistro,
-                asctime(localtime(&info.MayorPosicion.fecha)));
+                asctime(localtime(&info.MayorPosicion.fecha.tv_sec)));
 
         sprintf(buffer,
                 "PID: %d\nNumero de escrituras:\t%d\nPrimera escritura:"

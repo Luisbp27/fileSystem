@@ -1,12 +1,12 @@
 #include "directorios.h"
 
-int remove_f(char *path, int recursive) {
+int remove_recursive(char *path, int recursive) {
     // Get file info
     struct STAT stat;
     if (mi_stat(path, &stat) < 0) {
         return FAILURE;
-    }      
-   
+    }
+
     if (!recursive || stat.tipo == 'f') {
         if (mi_unlink(path) == FAILURE) {
             return FAILURE;
@@ -42,7 +42,7 @@ int remove_f(char *path, int recursive) {
             }
             strcat(nombre, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
 
-            remove_f(nombre, recursive);
+            remove_recursive(nombre, recursive);
 
             if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0) {
                 offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
-    if (remove_f(path, recursive) == FAILURE) {
+    if (remove_recursive(path, recursive) == FAILURE) {
         return FAILURE;
     }
 

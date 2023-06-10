@@ -3,7 +3,7 @@
 
 /**
  * Usage: ./my_mkfs <path to virtual device> <number of blocks to allocate>
- * 
+ *
  * @param argc
  * @param argv
  *
@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     // Check the possible errors in params
     if (argc < 3) {
         fprintf(stderr,
-                "Not enough arguments. Usage: %s <device name> <block size>\n",
+                "Not enough arguments. Usage: %s <device name> <blocks>\n",
                 argv[0]);
 
         return FAILURE;
@@ -21,6 +21,14 @@ int main(int argc, char **argv) {
     char *path = argv[1];
     int n_blocks = atoi(argv[2]);
     int n_inodes = n_blocks / 4;
+
+#if MMAP
+    int device_size = n_blocks * BLOCKSIZE;
+    FILE *fp = fopen(path, "w");
+    fseek(fp, device_size, SEEK_SET);
+    fputc('\0', fp);
+    fclose(fp);
+#endif
 
     // Initialize the buffer to all 0s
     unsigned char buffer[BLOCKSIZE];

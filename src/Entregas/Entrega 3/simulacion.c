@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
             for (int nescritura = 1; nescritura <= NUMESCRITURAS; nescritura++) {
                 struct REGISTRO registro;
 
-                registro.fecha = time(NULL);
+                gettimeofday(&registro.fecha, NULL);
                 registro.pid = getpid();
                 registro.nEscritura = nescritura;
                 registro.nRegistro = rand() % REGMAX;

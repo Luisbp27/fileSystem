@@ -33,5 +33,8 @@
 
 - Entradas buffer --> buscar_entradas() & mi_dir()
 - Diversas mejoras del mi_ls
-- Caché directorios
+- Caché directorios LRU & FIFO
 - mi_touch & mi_rmdir
+- mi_rm_r
+- Secciones críticas capa de ficheros
+- Sellos de tiempo

@@ -6,7 +6,7 @@ void mostrar_buscar_entrada(char *camino, char reservar) {
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
 
-    
+
         printf("\ncamino: %s, reservar: %d\n", camino, reservar);
 
         int error;
@@ -15,7 +15,7 @@ void mostrar_buscar_entrada(char *camino, char reservar) {
         }
 
         printf("**********************************************************************\n");
-    
+
 }
 #endif
 
@@ -47,7 +47,7 @@ int main(int argc, char const *argv[]) {
     }
 
     // Visualization of the superblock content
-    printf("SUPERBLOQUE\n");
+    printf("\nSUPERBLOQUE\n");
     printf("posPrimerBloqueMB = %u\n", sb.posPrimerBloqueMB);
     printf("posUltimoBloqueMB = %u\n", sb.posUltimoBloqueMB);
     printf("posPrimerBloqueAI = %u\n", sb.posPrimerBloqueAI);
@@ -59,13 +59,13 @@ int main(int argc, char const *argv[]) {
     printf("cantBloquesLibres = %u\n", sb.cantBloquesLibres);
     printf("cantInodosLibres = %u\n", sb.cantInodosLibres);
     printf("totBloques = %u\n", sb.totBloques);
-    printf("totInodos = %u\n", sb.totInodos);
+    printf("totInodos = %u\n\n", sb.totInodos);
 
+#if DEBUG3
     // Visualization of the inode size
     printf("Size of superblock type: %lu\n", sizeof(super_bloque_t));
     printf("Size of inode type: %lu\n", sizeof(inodo_t));
 
-#if DEBUG3
     // Visualization of the linked list of free inodes
     printf("\nINODOS LIBRES\n");
 

@@ -20,7 +20,7 @@ int main (int argc, char **argv) {
     unsigned int read_bytes_total = 0;
     unsigned int offset = 0;
     char buffer[BLOCKSIZE * 4] = {0};
-    
+
     // Reading the file
     while ((read_bytes = mi_read(path, buffer, offset, sizeof(buffer))) > 0) {
         read_bytes_total += read_bytes;
@@ -39,7 +39,7 @@ int main (int argc, char **argv) {
         mostrar_error_buscar_entrada(read_bytes_total);
         read_bytes_total = 0;
     }
-    fprintf(stderr, "\n Total_leidos: %d \n", read_bytes_total);
+    fprintf(stderr, "\n Total_leidos: %d \n\n", read_bytes_total);
 
     if (bumount() == FAILURE) {
         return FAILURE;

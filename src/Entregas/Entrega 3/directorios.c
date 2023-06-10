@@ -274,7 +274,7 @@ void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrad
     }
 
     strcat(buffer, RESET);
-    // Preparamos el string para la siguiente entrada}
+    // Preparamos el string para la siguiente entrada
     strcat(buffer, "\n");
 }
 
@@ -403,8 +403,7 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
     return p_inodo;
 }
 
-#if LRU_CACHE
-int timeval_compare(struct timeval t1, struct timeval t2) {
+int timeval_cmp(struct timeval t1, struct timeval t2) {
     if (t1.tv_sec > t2.tv_sec) {
         return 1;  // t1 is greater
     } else if (t1.tv_sec < t2.tv_sec) {
@@ -419,7 +418,6 @@ int timeval_compare(struct timeval t1, struct timeval t2) {
         }
     }
 }
-#endif
 
 int cache_read(const char *camino, unsigned int *p_inodo) {
     // Cache traversal to check if the write is on a previous inode
@@ -455,8 +453,8 @@ void cache_add(const char *camino, unsigned int p_inodo) {
         replace_index = 0;
 
         for (int i = 1; i < cache_length; i++) {
-            // fprintf(stderr, "[i: %d] > max? %d\n", i, timeval_compare(tabla_cache[i].time, min_entry->time));
-            if (timeval_compare(tabla_cache[i].time, min_entry->time) < 0) {
+            // fprintf(stderr, "[i: %d] > max? %d\n", i, tiemval_cmp(tabla_cache[i].time, min_entry->time));
+            if (timeval_cmp(tabla_cache[i].time, min_entry->time) < 0) {
                 min_entry = &tabla_cache[i];
                 replace_index = i;
             }
@@ -743,4 +741,20 @@ int mi_unlink(const char *camino) {
 
     mi_signalSem();
     return SUCCESS;
+}
+
+int tiemval_cmp(struct timeval t1, struct timeval t2) {
+    if (t1.tv_sec > t2.tv_sec) {
+        return 1;  // t1 is greater
+    } else if (t1.tv_sec < t2.tv_sec) {
+        return -1; // t2 is greater
+    } else {
+        if (t1.tv_usec > t2.tv_usec) {
+            return 1;  // t1 is greater
+        } else if (t1.tv_usec < t2.tv_usec) {
+            return -1; // t2 is greater
+        } else {
+            return 0;  // t1 and t2 are equal
+        }
+    }
 }
