@@ -36,5 +36,6 @@
 - Caché directorios LRU & FIFO
 - mi_touch & mi_rmdir
 - mi_rm_r
+- mmap
 - Secciones críticas capa de ficheros
 - Sellos de tiempo

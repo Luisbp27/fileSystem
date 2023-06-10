@@ -1,6 +1,7 @@
 #include "bloques.h"
 #include "semaforo_mutex_posix.h"
 
+static int descriptor = 0;
 static sem_t *mutex;
 static unsigned int in_critic_sec = 0;
 
@@ -13,13 +14,11 @@ void *do_mmap(int fd) {
     void *ptr;
     fstat(fd, &st);
     tamSFM = st.st_size;
-    if ((ptr = mmap(NULL, tamSFM, PROT_WRITE, MAP_SHARED, fd, 0)) == -1) {
+    if ((ptr = mmap(NULL, tamSFM, PROT_WRITE, MAP_SHARED, fd, 0)) == (void *)-1) {
 
     }
     return ptr;
 }
-#else
-static int descriptor = 0;
 #endif
 
 
@@ -44,6 +43,10 @@ int bmount(const char *path) {
     if (descriptor == FAILURE) {
         perror("Could not open the file system");
     }
+
+#if MMAP
+    ptrSFM = do_mmap(descriptor);
+#endif
 
     if (!mutex) {
         mutex = initSem();
@@ -70,6 +73,11 @@ int bumount() {
         return FAILURE;
     }
 
+#if MMAP
+    msync(ptrSFM, tamSFM, MS_SYNC | MS_INVALIDATE);
+    munmap(ptrSFM, tamSFM);
+#endif
+
     deleteSem();
 
     return SUCCESS;
@@ -85,6 +93,11 @@ int bumount() {
  * @return The number of bytes written, or -1 if there was an error.
  */
 int bwrite(unsigned int nbloque, const void *buf) {
+#if MMAP
+    unsigned int pos = nbloque * BLOCKSIZE;
+    memcpy(ptrSFM + pos, buf, BLOCKSIZE);
+    return BLOCKSIZE;
+#else
     // Allocate the pointer
     if (lseek(descriptor, nbloque * BLOCKSIZE, SEEK_SET) == FAILURE) {
         perror("Error while positioning the file pointer");
@@ -101,6 +114,7 @@ int bwrite(unsigned int nbloque, const void *buf) {
     }
 
     return bytes_written;
+#endif
 }
 
 /**
@@ -113,6 +127,11 @@ int bwrite(unsigned int nbloque, const void *buf) {
  * @return The number of bytes read, or -1 if there was an error.
  */
 int bread(unsigned int nbloque, void *buf) {
+#if MMAP
+    unsigned int pos = nbloque * BLOCKSIZE;
+    memcpy(buf, ptrSFM + pos, BLOCKSIZE);
+    return BLOCKSIZE;
+#else
     // Allocate the pointer
     if (lseek(descriptor, nbloque * BLOCKSIZE, SEEK_SET) == FAILURE) {
         perror("Error when positioning the file pointer");
@@ -129,6 +148,7 @@ int bread(unsigned int nbloque, void *buf) {
     }
 
     return bytes;
+#endif
 }
 
 void mi_waitSem() {

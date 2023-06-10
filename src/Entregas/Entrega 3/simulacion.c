@@ -63,7 +63,8 @@ int main(int argc, char **argv) {
 
             // Creating the file
             char file[100];
-            sprintf(file, "%sprueba.dat", name_dir);
+            strcpy(file, name_dir);
+            strcat(file, "prueba.dat");
             if (mi_creat(file, 6) == FAILURE) {
                 bumount();
                 exit(0);
