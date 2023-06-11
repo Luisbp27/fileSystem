@@ -1,7 +1,7 @@
 #include "directorios.h"
 
 int main(int argc, char **argv) {
-    
+
     // Checking syntax
     if (argc < 4) {
         fprintf(stderr, "Command syntax should be: mi_link <disco> </ruta_fichero_original> </ruta_enlace> \n");
@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
+    // Checking if the path ends in /
     if (argv[3][strlen(argv[3]) - 1] == '/') {
         fprintf(stderr, "Invalid path of the link \n");
         return FAILURE;

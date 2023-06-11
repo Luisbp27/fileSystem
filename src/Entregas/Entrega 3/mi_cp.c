@@ -1,12 +1,12 @@
 #include "directorios.h"
 
-int move_recursive(char *src, char *dest) {
+int copy_recursive(char *src, char *dest) {
     // Get file info
     struct STAT src_stat;
     if (mi_stat(src, &src_stat) < 0) {
         return FAILURE;
     }
-    
+
     if (src_stat.tipo == 'd' && src[strlen(src) - 1] != '/') {
         strcat(src, "/");
     }
@@ -90,7 +90,7 @@ int move_recursive(char *src, char *dest) {
             strcat(dest_next, src_entrada.nombre);
             strcat(dest_next, "/");
 
-            move_recursive(src_next, dest_next);
+            copy_recursive(src_next, dest_next);
 
             if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0) {
                 offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
@@ -133,8 +133,8 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
-    // If it is a file or a directory
-    if (move_recursive(argv[2], argv[3]) == FAILURE) {
+    // If it is a file or a directory, copy it
+    if (copy_recursive(argv[2], argv[3]) == FAILURE) {
         return FAILURE;
     }
 

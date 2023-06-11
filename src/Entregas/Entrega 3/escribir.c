@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         return FAILURE;
     }
 
-    // Bucle de escritura en todos los offsets del array.
+    // Iteration to write the text in the different offsets
     for (int i = 0; i < sizeof(offsets) / sizeof(int); i++) {
 
         printf("Nº inodo reservado: %d\n", ninodo);
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 
         printf("\n");
 
-        // Obtencion de la información del inodo escrito
+        // Get the inode stats
         struct STAT p_stat;
         if (mi_stat_f(ninodo, &p_stat)) {
             fprintf(stderr, "escribir.c: Error mi_stat_f()\n");
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "stat.tamEnBytesLog = %d\n", p_stat.tamEnBytesLog);
         fprintf(stderr, "stat.numBloquesOcupados = %d\n\n", p_stat.numBloquesOcupados);
 
-        // Si el parámetro <diferentes_indodos> es 0, reserva un nuevo inodo.
+        // If the inode is full, we have to allocate a new one
         if (diferentes_inodos != 0) {
             ninodo = reservar_inodo('f', 6);
 

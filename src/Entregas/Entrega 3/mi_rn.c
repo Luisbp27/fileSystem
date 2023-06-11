@@ -7,22 +7,27 @@
 #include <stdio.h>
 #include <string.h>
 
-// Function to find the parent directory
+/**
+ * This method finds the parent directory of an entry
+ *
+ * @param entry
+ * @param parent
+ */
 void parent_dir(const char* entry, char* parent) {
     size_t len = strlen(entry);
-    
+
     // Check if the entry is a directory and remove trailing slashes
     if (len > 0 && entry[len - 1] == '/') {
         len--;
     }
-    
+
     // Find the last occurrence of '/'
     const char* last_slash = strrchr(entry, '/');
-    
+
     if (last_slash != NULL) {
         // Calculate the length of the parent directory
         size_t parent_len = last_slash - entry + 1;
-        
+
         // Copy the parent directory into the buffer
         strncpy(parent, entry, parent_len);
         parent[parent_len] = '\0'; // Null-terminate the string
@@ -79,7 +84,7 @@ int main(int argc, char **argv) {
     if (buscar_entrada(dest, &p_inodo_dir_dest, &p_inodo_dest, &p_entrada_dest, 0, 0) != ERROR_NO_EXISTE_ENTRADA_CONSULTA) {
         fprintf(stderr, "Error: Entry already exists\n");
         return FAILURE;
-    } 
+    }
 
     // Read p_inodo_dir to get the name of the directory p_entrada
     // offset = p_entrada * sizeof(struct entrada), buffer = sizeof(struct entrada)

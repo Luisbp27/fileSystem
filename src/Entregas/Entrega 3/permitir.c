@@ -1,6 +1,7 @@
 #include "ficheros.h"
 
 int main(int argc, char *argv[]) {
+
     // argv[1] = dir, argv[2] = ninodo, argv[3] = permisos
     if (argc < 4) {
         fprintf(stderr, "Command syntax should be: permitir <nombre_dispositivo> <ninodo> <permisos>\n");

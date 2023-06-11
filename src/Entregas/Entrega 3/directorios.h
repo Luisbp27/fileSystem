@@ -14,6 +14,7 @@
 #define ERROR_ENTRADA_YA_EXISTENTE -7
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO -8
 
+// Colors
 #define RED "\x1b[31m"
 #define GREEN "\x1b[32m"
 #define YELLOW "\x1b[33m"
@@ -21,12 +22,11 @@
 #define MAGENTA "\x1b[35m"
 #define CYAN "\x1b[36m"
 #define RESET "\x1b[0m"
+#define LBLUE "\x1b[94m"
+#define LRED "\x1b[91m"
 
 #define TAMFILA 100
 #define TAMBUFFER (TAMFILA * 1000) // suponemos un máx de 1000 entradas, aunque debería ser SB.totInodos
-
-#define LBLUE "\x1b[94m"
-#define LRED "\x1b[91m"
 
 #define LRU_CACHE 1
 #define MAX_CACHE 3

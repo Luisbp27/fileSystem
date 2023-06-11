@@ -6,8 +6,8 @@ static sem_t *mutex;
 static unsigned int in_critic_sec = 0;
 
 #if MMAP
-static int tamSFM; // tamaño memoria compartida
-static void *ptrSFM; // puntero a memoria compartida
+static int tamSFM; // shared memory size
+static void *ptrSFM; // shared memory pointer
 
 void *do_mmap(int fd) {
     struct stat st;
@@ -151,6 +151,10 @@ int bread(unsigned int nbloque, void *buf) {
 #endif
 }
 
+/**
+ * Method to manage the critical section of the file system. Concretely, it controls
+ * the process inside the critical section and manages the semaphore.
+*/
 void mi_waitSem() {
     if (in_critic_sec == 0) {
         waitSem(mutex);
@@ -159,6 +163,10 @@ void mi_waitSem() {
     in_critic_sec++;
 }
 
+/**
+ * Method to manage the critical section of the file system. Concretely, it controls
+ * the process inside the critical section and manages the semaphore.
+*/
 void mi_signalSem() {
     in_critic_sec--;
 

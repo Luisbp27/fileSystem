@@ -7,22 +7,27 @@
 #include <stdio.h>
 #include <string.h>
 
-// Function to find the parent directory
+/**
+ * This method finds the parent directory of an entry
+ *
+ * @param entry
+ * @param parent
+ */
 void parent_dir(const char* entry, char* parent) {
     size_t len = strlen(entry);
-    
+
     // Check if the entry is a directory and remove trailing slashes
     if (len > 0 && entry[len - 1] == '/') {
         len--;
     }
-    
+
     // Find the last occurrence of '/'
     const char* last_slash = strrchr(entry, '/');
-    
+
     if (last_slash != NULL) {
         // Calculate the length of the parent directory
         size_t parent_len = last_slash - entry + 1;
-        
+
         // Copy the parent directory into the buffer
         strncpy(parent, entry, parent_len);
         parent[parent_len] = '\0'; // Null-terminate the string
@@ -94,7 +99,7 @@ int main(int argc, char **argv) {
     if (buscar_entrada(dest, &p_inodo_dest_parent, &p_inodo_dest, &p_entrada_dest, 0, 0) != ERROR_NO_EXISTE_ENTRADA_CONSULTA) {
         fprintf(stderr, "Error: Entry already exists\n");
         return FAILURE;
-    }  
+    }
 
     inodo_t inodo_src_parent;
     if (leer_inodo(p_inodo_src_parent, &inodo_src_parent) == FAILURE) {
@@ -104,7 +109,7 @@ int main(int argc, char **argv) {
     inodo_t inodo_dest_parent;
     if (leer_inodo(p_inodo_dest_parent, &inodo_dest_parent) == FAILURE)  {
         return FAILURE;
-    } 
+    }
 
     // Delete src entry
     int num_entradas_inodo = inodo_src_parent.tamEnBytesLog / sizeof(struct entrada);
@@ -125,7 +130,7 @@ int main(int argc, char **argv) {
     // Delete the last entry
     if (mi_truncar_f(p_inodo_src_parent, sizeof(struct entrada) * (num_entradas_inodo - 1)) == FAILURE) {
         return FAILURE;
-    } 
+    }
 
     if (mi_write_f(p_inodo_dest_parent, &entrada_src, inodo_dest_parent.tamEnBytesLog, sizeof(struct entrada)) == FAILURE) {
         return FAILURE;

@@ -31,7 +31,7 @@ int main (int argc, char **argv) {
     int error;
     if ((error = mi_creat(argv[3], perms)) < 0) {
         bumount();
-        
+
         return FAILURE;
     }
 

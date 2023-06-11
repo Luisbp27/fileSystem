@@ -1,13 +1,5 @@
 #include "directorios.h"
 
-/**
- * Change the permissions of a file or directory by calling
- * the my_chmod() function of the directory layer
- *
- * @param argc
- * @param argv
- *
- */
 int main(int argc, char **argv) {
 
     // Checking syntax

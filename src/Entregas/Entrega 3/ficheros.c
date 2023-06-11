@@ -191,7 +191,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
         bytes_leidos = BLOCKSIZE - desp1;
 
-        // Bloques intermedios
+        // Intermediate blocks
         for (int i = primerBL + 1; i < ultimoBL; i++) {
             nb_fisico = traducir_bloque_inodo(&inodo, i, 0);
 
@@ -206,7 +206,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             bytes_leidos += BLOCKSIZE;
         }
 
-        // Ultimo bloque
+        // Last block
         int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
         nb_fisico = traducir_bloque_inodo(&inodo, ultimoBL, 0);
@@ -226,7 +226,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 }
 
 /**
- * This method
+ * This method update the inode information of a file/directory (corresponding to the inode number passed as argument, ninodo)
  *
  * @param ninodo
  * @param p_stat
@@ -260,7 +260,7 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat) {
  * @param ninodo
  * @param permisos
  *
- * @return
+ * @return -1 if there is an error or free blocks
  */
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
     mi_waitSem();

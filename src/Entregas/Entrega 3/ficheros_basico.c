@@ -167,13 +167,18 @@ int calc_bit(unsigned int nbloque, unsigned int *posbyte, unsigned int *posbit, 
         return FAILURE;
     }
 
-    *posbyte = nbloque / 8; // posición absoluta del byte que conteiene el bit del MB
-    *posbit = nbloque % 8;  // posición del bit a modificar dentro del byte
+    // Calculate the absolute position of the byte which contains the bit of the MB
+    *posbyte = nbloque / 8;
+    // Calculate the position of the bit to modify inside the byte
+    *posbit = nbloque % 8;
 
-    unsigned int nbloqueMB = *posbyte / BLOCKSIZE;  // posición del bloque relativa al comienzo del MB
-    *nbloqueabs = sb.posPrimerBloqueMB + nbloqueMB; // posición absoluta del bloque
+    // Calculate the relative position of the block relative to the beginning of the MB
+    unsigned int nbloqueMB = *posbyte / BLOCKSIZE;
+    // Calculate the absolute position of the block
+    *nbloqueabs = sb.posPrimerBloqueMB + nbloqueMB;
 
-    *posbyte = *posbyte % BLOCKSIZE; // posición del byte dentro del bloque leído
+    // Calculate the relative position of the byte inside the readed block
+    *posbyte = *posbyte % BLOCKSIZE;
 
     return SUCCESS;
 }
@@ -447,6 +452,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
         .punterosIndirectos = {0},
     };
 
+    // Write the inode in the virtual device
     if (escribir_inodo(posInodoReservado, &inodo) == FAILURE) {
         return FAILURE;
     }

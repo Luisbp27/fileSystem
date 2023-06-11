@@ -1,13 +1,5 @@
 #include "directorios.h"
 
-/**
- * Program (command) that creates a file or directory, calling the function my_creat().
- * Depending on whether the path ends in / or not will indicate whether to create a directory or a file.
- *
- * @param argc
- * @param argv
- *
- */
 int main(int argc, char **argv) {
     // Checking syntax
     if (argc < 4) {

@@ -211,6 +211,14 @@ void mostrar_error_buscar_entrada(int error) {
     }
 }
 
+/**
+ * This method creates a directory in a given path.
+ *
+ * @param camino The path to the directory
+ * @param permisos The permisions of the directory
+ *
+ * @return 0 if success, -1 if error
+ */
 int mi_creat(const char *camino, unsigned char permisos) {
     mi_waitSem();
 
@@ -230,6 +238,15 @@ int mi_creat(const char *camino, unsigned char permisos) {
     return SUCCESS;
 }
 
+/**
+ * This function prints the information of an entry in the buffer
+ *
+ * @param buffer The buffer where we will save the information
+ * @param inodo The inode of the entry
+ * @param entrada The entry
+ *
+ * @return 0 if success, -1 if error
+ */
 void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrada) {
     struct tm *tm;
     char time[100];
@@ -278,6 +295,16 @@ void print_entrada_extended(char *buffer, inodo_t *inodo, struct entrada *entrad
     strcat(buffer, "\n");
 }
 
+/**
+ * This method creates a directory in a given path.
+ *
+ * @param camino The path to the directory
+ * @param buffer The buffer where we will save the information
+ * @param tipo The type of the entry
+ * @param extended If we want to print the extended information
+ *
+ * @return 0 if success, -1 if error
+ */
 int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;

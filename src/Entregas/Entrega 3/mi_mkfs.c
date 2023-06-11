@@ -1,13 +1,6 @@
 #include "ficheros_basico.h"
 #include <stdio.h>
 
-/**
- * Usage: ./my_mkfs <path to virtual device> <number of blocks to allocate>
- *
- * @param argc
- * @param argv
- *
-*/
 int main(int argc, char **argv) {
     // Check the possible errors in params
     if (argc < 3) {

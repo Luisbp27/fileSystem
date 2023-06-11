@@ -1,12 +1,5 @@
 #include "directorios.h"
 
-/**
- * Method that removes a directory from the file system.
- *
- * @param   camino  Path to the file to remove.
- *
- * @return  0 if success, -1 otherwise.
- */
 int main(int argc, char **argv) {
 
     // Check syntax

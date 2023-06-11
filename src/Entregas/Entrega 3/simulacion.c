@@ -2,19 +2,23 @@
 
 int acabados = 0;
 
+/**
+ * This method is used to wait for the child processes
+ */
 void reaper() {
     pid_t ended;
     signal(SIGCHLD, reaper);
-    while ((ended = waitpid(-1, NULL, WNOHANG)) > 0)
-    {
+
+    while ((ended = waitpid(-1, NULL, WNOHANG)) > 0) {
         acabados++;
-    #if DEBUG12
-        fprintf(stderr, "[simulación.c → Acabado proceso con PID %d, total acabados: %d]\n", ended, acabados);
-    #endif
+        #if DEBUG12
+            fprintf(stderr, "[simulación.c → Acabado proceso con PID %d, total acabados: %d]\n", ended, acabados);
+        #endif
     }
 }
 
 int main(int argc, char **argv) {
+
     signal(SIGCHLD, reaper);
 
     // Check syntax
