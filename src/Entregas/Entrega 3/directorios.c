@@ -338,6 +338,10 @@ int mi_dir(const char *camino, char *buffer, char *tipo, int extended) {
                 offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
             }
         }
+
+        if (!extended) {
+            strcat(buffer, "\n");
+        }
     } else {
         nEntradas = 1;
 

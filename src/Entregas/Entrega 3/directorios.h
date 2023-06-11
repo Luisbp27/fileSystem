@@ -3,6 +3,7 @@
 
 // Directory/file name size, ext2 = 255
 #define TAMNOMBRE 60
+#define PROFUNDIDAD 32
 
 // Error codes
 #define ERROR_CAMINO_INCORRECTO -2
@@ -26,9 +27,6 @@
 
 #define LBLUE "\x1b[94m"
 #define LRED "\x1b[91m"
-
-#define TAMNOMBRE 60
-#define PROFUNDIDAD 32
 
 #define LRU_CACHE 1
 #define MAX_CACHE 3

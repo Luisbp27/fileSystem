@@ -21,6 +21,9 @@ mi_escribir_varios
 mi_cat
 mi_stat
 mi_rm
+mi_rn
+mi_cp
+mi_mv
 mi_rmdir
 simulacion
 verificacion

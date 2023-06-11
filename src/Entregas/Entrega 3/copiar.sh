@@ -22,19 +22,19 @@ echo "$ ./leer_sf disco"
 ./leer_sf disco
 
 echo "$ ./mi_ls disco /dir2/"
-./mi_ls disco /dir2/
+./mi_ls disco /dir2/ -l
 echo "$ ./mi_ls disco /dir3/dir32/dir2/"
-./mi_ls disco /dir3/dir32/dir2/
+./mi_ls disco /dir3/dir32/dir2/ -l
 
 echo "$ ./mi_ls disco /dir2/dir21/"
-./mi_ls disco /dir2/dir21/
+./mi_ls disco /dir2/dir21/ -l
 echo "$ ./mi_ls disco /dir3/dir32/dir2/dir21/"
-./mi_ls disco /dir3/dir32/dir2/dir21/
+./mi_ls disco /dir3/dir32/dir2/dir21/ -l
 
 echo "$ ./mi_ls disco /dir2/dir22/"
-./mi_ls disco /dir2/dir22/
+./mi_ls disco /dir2/dir22/ -l
 echo "$ ./mi_ls disco /dir3/dir32/dir2/dir22/"
-./mi_ls disco /dir3/dir32/dir2/dir22/
+./mi_ls disco /dir3/dir32/dir2/dir22/ -l
 
 echo "$ ./mi_stat disco /dir2/dir21/fic211"
 ./mi_stat disco /dir2/dir21/fic211

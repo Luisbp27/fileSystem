@@ -2,9 +2,13 @@
 
 int copy_recursive(char *src, char *dest) {
     // Get file info
-    struct STAT stat;
-    if (mi_stat(src, &stat) < 0) {
+    struct STAT src_stat;
+    if (mi_stat(src, &src_stat) < 0) {
         return FAILURE;
+    }
+    
+    if (src_stat.tipo == 'd' && src[strlen(src) - 1] != '/') {
+        strcat(src, "/");
     }
 
     unsigned int p_inodo_dir = 0;
@@ -25,37 +29,48 @@ int copy_recursive(char *src, char *dest) {
 
     // Read p_inodo_dir to get the name of the directory p_entrada
     // offset = p_entrada * sizeof(struct entrada), buffer = sizeof(struct entrada)
-    struct entrada entrada;
-    if (mi_read_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) == FAILURE) {
+    struct entrada src_entrada;
+    if (mi_read_f(p_inodo_dir, &src_entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) == FAILURE) {
         return FAILURE;
     }
 
-    // Name of the new directory
-    char dest_nombre[TAMNOMBRE];
-    strcpy(dest_nombre, dest);
-    strcat(dest_nombre, entrada.nombre);
+    // Name of the new entry
+    char dest_new_entry[TAMNOMBRE * PROFUNDIDAD];
+    strcpy(dest_new_entry, dest);
+    strcat(dest_new_entry, src_entrada.nombre);
+    if (src_stat.tipo == 'd') {
+        strcat(dest_new_entry, "/");
+    }
 
     // Create the new directory
-    if (mi_creat(dest_nombre, inodo.permisos) == FAILURE) {
+    if (mi_creat(dest_new_entry, inodo.permisos) == FAILURE) {
         return FAILURE;
     }
 
     // If it is a file or a directory
-    if (stat.tipo == 'f') {
+    if (src_stat.tipo == 'f') {
         // Copy the file
-        char buffer[BLOCKSIZE];
-        int offset = 0;
-        while (offset < inodo.tamEnBytesLog) {
-            int bytes = mi_read(src, buffer, offset, BLOCKSIZE);
+        char buffer[BLOCKSIZE] = {0};
+
+        for (int logic_block_index = 0; logic_block_index * BLOCKSIZE < inodo.tamEnBytesLog; logic_block_index++) {
+            int phis_block_index = traducir_bloque_inodo(&inodo, logic_block_index, 0);
+            if (phis_block_index == FAILURE) {
+                // Block is not assigned, it has to be skipped
+                continue;
+            }
+
+            int bytes = bread(phis_block_index, buffer);
             if (bytes == FAILURE) {
                 return FAILURE;
             }
 
-            if (mi_write(dest_nombre, buffer, offset, bytes) == FAILURE) {
-                return FAILURE;
+            if (inodo.tamEnBytesLog - logic_block_index * BLOCKSIZE < BLOCKSIZE) {
+                bytes = inodo.tamEnBytesLog - logic_block_index * BLOCKSIZE;
             }
 
-            offset += bytes;
+            if (mi_write(dest_new_entry, buffer, logic_block_index * BLOCKSIZE, bytes) == FAILURE) {
+                return FAILURE;
+            }
         }
     } else {
         // Find all entries
@@ -65,11 +80,17 @@ int copy_recursive(char *src, char *dest) {
         // Copy all entries recursively
         int offset = mi_read_f(p_inodo, entradas, 0, BLOCKSIZE);
         for (int i = 0; i < nEntradas; i++) {
-            char dest_nombre[TAMNOMBRE];
-            strcpy(dest_nombre, dest);
-            strcat(dest_nombre, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
+            struct entrada *entrada_i = &entradas[i % (BLOCKSIZE / sizeof(struct entrada))];
 
-            copy_recursive(dest_nombre, dest);
+            char src_next[TAMNOMBRE * PROFUNDIDAD];
+            char dest_next[TAMNOMBRE * PROFUNDIDAD];
+            strcpy(src_next, src);
+            strcat(src_next, entrada_i->nombre);
+            strcpy(dest_next, dest);
+            strcat(dest_next, src_entrada.nombre);
+            strcat(dest_next, "/");
+
+            copy_recursive(src_next, dest_next);
 
             if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0) {
                 offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
@@ -101,7 +122,7 @@ int main(int argc, char **argv) {
         return FAILURE;
     }
 
-    // Check if the source file exists
+    // Check if the source exists
     struct STAT stat;
     if (mi_stat(argv[2], &stat) < 0) {
         return FAILURE;
