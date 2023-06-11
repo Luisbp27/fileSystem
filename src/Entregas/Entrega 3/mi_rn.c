@@ -33,7 +33,7 @@ void parent_dir(const char* entry, char* parent) {
 }
 
 /**
- * This method copies a file or directory from one src to another.
+ * This method renames an entry in a directory
  *
  * @param argc
  * @param argv
@@ -79,12 +79,7 @@ int main(int argc, char **argv) {
     if (buscar_entrada(dest, &p_inodo_dir_dest, &p_inodo_dest, &p_entrada_dest, 0, 0) != ERROR_NO_EXISTE_ENTRADA_CONSULTA) {
         fprintf(stderr, "Error: Entry already exists\n");
         return FAILURE;
-    }
-
-    inodo_t inodo;
-    if (leer_inodo(p_inodo_src, &inodo) == FAILURE) {
-        return FAILURE;
-    }
+    } 
 
     // Read p_inodo_dir to get the name of the directory p_entrada
     // offset = p_entrada * sizeof(struct entrada), buffer = sizeof(struct entrada)

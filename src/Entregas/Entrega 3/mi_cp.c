@@ -1,6 +1,6 @@
 #include "directorios.h"
 
-int copy_recursive(char *src, char *dest) {
+int move_recursive(char *src, char *dest) {
     // Get file info
     struct STAT src_stat;
     if (mi_stat(src, &src_stat) < 0) {
@@ -90,7 +90,7 @@ int copy_recursive(char *src, char *dest) {
             strcat(dest_next, src_entrada.nombre);
             strcat(dest_next, "/");
 
-            copy_recursive(src_next, dest_next);
+            move_recursive(src_next, dest_next);
 
             if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0) {
                 offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
     }
 
     // If it is a file or a directory
-    if (copy_recursive(argv[2], argv[3]) == FAILURE) {
+    if (move_recursive(argv[2], argv[3]) == FAILURE) {
         return FAILURE;
     }
 
