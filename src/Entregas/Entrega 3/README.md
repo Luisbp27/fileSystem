@@ -31,11 +31,15 @@
 
 ## *Mejoras:*
 
-- Entradas buffer --> buscar_entradas() & mi_dir()
-- Diversas mejoras del mi_ls
-- Caché directorios LRU & FIFO
-- mi_touch & mi_rmdir
-- mi_rm_r
-- mmap
-- Secciones críticas capa de ficheros
-- Sellos de tiempo
+- [ ] Mejora librar_bloques_inodo
+- [x] Entradas buffer --> buscar_entradas() & mi_dir()
+- [x] Diversas mejoras del mi_ls
+- [x] Caché directorios LRU & FIFO
+- [x] mi_touch & mi_rmdir
+- [x] mi_rm_r
+- [x] mi_rn
+- [x] mi_cp
+- [x] mi_mv
+- [x] mmap
+- [x] Secciones críticas capa de ficheros
+- [x] Sellos de tiempo en microsegundos
