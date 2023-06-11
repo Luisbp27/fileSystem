@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
         read_bytes_total = 0;
     }
 
-    fprintf(stderr, "Total_leidos: %d\n\n", read_bytes_total);
+    fprintf(stderr, "Total leidos: %d\n\n", read_bytes_total);
 
     if (bumount() == FAILURE) {
         return FAILURE;
