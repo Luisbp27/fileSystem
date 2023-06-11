@@ -11,7 +11,7 @@ echo "$ ./mi_cat disco /dir2/dir22/fic221"
 echo "$ ./mi_cat disco /dir2/dir22/fic222"
 ./mi_cat disco /dir2/dir22/fic222
 echo "$ ./mi_ls disco /dir2/dir22/"
-./mi_ls disco /dir2/dir22/
+./mi_ls disco /dir2/dir22/ -l
 echo "$ ./mi_cat disco /dir1/dir12/fic122"
 ./mi_cat disco /dir1/dir12/fic122
 echo "$ ./mi_rn disco /dir1/dir12/fic122 fic123"
@@ -21,11 +21,11 @@ echo "$ ./mi_cat disco /dir1/dir12/fic122"
 echo "$ ./mi_cat disco /dir1/dir12/fic123"
 ./mi_cat disco /dir1/dir12/fic123
 echo "$ ./mi_ls disco /dir1/dir12/"
-./mi_ls disco /dir1/dir12/
+./mi_ls disco /dir1/dir12/ -l
 echo "$ ./mi_rn disco /dir2/dir23/ dir24"
 ./mi_rn disco /dir2/dir23/ dir24
 echo "$ ./mi_ls disco /dir2/"
-./mi_ls disco /dir2/
+./mi_ls disco /dir2/ -l
 
 echo "$ ./leer_sf disco"
 ./leer_sf disco
@@ -38,11 +38,11 @@ echo "$ ./mi_rn disco /dir2/dir22/fic222 fic221"
 echo "$ ./mi_rn disco /dir2/dir24/ dir23"
 ./mi_rn disco /dir2/dir24/ dir23
 echo "$ ./mi_ls disco /dir1/dir12/"
-./mi_ls disco /dir1/dir12/
+./mi_ls disco /dir1/dir12/ -l
 echo "$ ./mi_ls disco /dir2/dir22/"
-./mi_ls disco /dir2/dir22/
+./mi_ls disco /dir2/dir22/ -l
 echo "$ ./mi_ls disco /dir2/"
-./mi_ls disco /dir2/
+./mi_ls disco /dir2/ -l
 
 echo "$ ./leer_sf disco"
 ./leer_sf disco

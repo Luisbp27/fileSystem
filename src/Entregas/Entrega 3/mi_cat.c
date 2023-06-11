@@ -1,6 +1,6 @@
 #include "directorios.h"
 
-int main (int argc, char **argv) {
+int main(int argc, char **argv) {
 
     // Checking syntax
     if (argc < 3) {
@@ -16,9 +16,9 @@ int main (int argc, char **argv) {
         return FAILURE;
     }
 
-    unsigned int read_bytes = 0;
-    unsigned int read_bytes_total = 0;
-    unsigned int offset = 0;
+    int read_bytes = 0;
+    int read_bytes_total = 0;
+    int offset = 0;
     char buffer[BLOCKSIZE * 4] = {0};
 
     // Reading the file
@@ -34,12 +34,12 @@ int main (int argc, char **argv) {
         offset += sizeof(buffer);
     }
 
-    fprintf(stderr, " \n");
-    if (read_bytes_total < 0) {
-        mostrar_error_buscar_entrada(read_bytes_total);
+    if (read_bytes < 0) {
+        mostrar_error_buscar_entrada(read_bytes);
         read_bytes_total = 0;
     }
-    fprintf(stderr, "\n Total_leidos: %d \n\n", read_bytes_total);
+
+    fprintf(stderr, "Total_leidos: %d\n\n", read_bytes_total);
 
     if (bumount() == FAILURE) {
         return FAILURE;

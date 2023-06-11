@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 
     // Check syntax
     if (argc < 4) {
-        fprintf(stderr, "Command syntax should be: ./mi_cp <disco> </origen/dest_nombre> </destino/>\n");
+        fprintf(stderr, "Command syntax should be: ./mi_cp <disco> </origen/nombre> </destino/>\n");
         return FAILURE;
     }
 
