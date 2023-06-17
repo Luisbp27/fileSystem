@@ -115,47 +115,55 @@ int main(int argc, char **argv) {
         memset(buffer, 0, sizeof(buffer));
 
         sprintf(buffer, "PID: %i\nNumero de escrituras: %i\n", pid, info.nEscrituras);
-        sprintf(buffer + strlen(buffer), "%s %i %i %s",
+        sprintf(buffer + strlen(buffer), "%s %i %i %ld usec",
                 "Primera escritura",
                 info.PrimeraEscritura.nEscritura,
                 info.PrimeraEscritura.nRegistro,
-                asctime(localtime(&info.PrimeraEscritura.fecha.tv_sec)));
+                asctime(localtime(&info.PrimeraEscritura.fecha.tv_sec)),
+                info.PrimeraEscritura.fecha.tv_usec);
 
-        sprintf(buffer + strlen(buffer), "%s %i %i %s",
+        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld usec",
                 "Ultima escritura",
                 info.UltimaEscritura.nEscritura,
                 info.UltimaEscritura.nRegistro,
-                asctime(localtime(&info.UltimaEscritura.fecha.tv_sec)));
+                asctime(localtime(&info.UltimaEscritura.fecha.tv_sec)),
+                info.UltimaEscritura.fecha.tv_usec);
 
-        sprintf(buffer + strlen(buffer), "%s %i %i %s",
+        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld usec",
                 "Menor posicion",
                 info.MenorPosicion.nEscritura,
                 info.MenorPosicion.nRegistro,
-                asctime(localtime(&info.MenorPosicion.fecha.tv_sec)));
+                asctime(localtime(&info.MenorPosicion.fecha.tv_sec)),
+                info.MenorPosicion.fecha.tv_usec);
 
-        sprintf(buffer + strlen(buffer), "%s %i %i %s",
+        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld",
                 "Mayor posicion",
                 info.MayorPosicion.nEscritura,
                 info.MayorPosicion.nRegistro,
-                asctime(localtime(&info.MayorPosicion.fecha.tv_sec)));
+                asctime(localtime(&info.MayorPosicion.fecha.tv_sec)),
+                info.MayorPosicion.fecha.tv_usec);
 
         sprintf(buffer,
                 "PID: %d\nNumero de escrituras:\t%d\nPrimera escritura:"
-                "\t%d\t%d\t%s\nUltima escritura:\t%d\t%d\t%s\nMayor po"
-                "sición:\t\t%d\t%d\t%s\nMenor posición:\t\t%d\t%d\t%s\n\n",
+                "\t%d\t%d\t%s %ld usec\nUltima escritura:\t%d\t%d\t%s %ld usec\nMayor po"
+                "sición:\t\t%d\t%d\t%s %ld usec\nMenor posición:\t\t%d\t%d\t%s %ld usec\n\n",
                 info.pid, info.nEscrituras,
                 info.PrimeraEscritura.nEscritura,
                 info.PrimeraEscritura.nRegistro,
                 first_time,
+                info.PrimeraEscritura.fecha.tv_usec,
                 info.UltimaEscritura.nEscritura,
                 info.UltimaEscritura.nRegistro,
                 last_time,
+                info.UltimaEscritura.fecha.tv_usec,
                 info.MenorPosicion.nEscritura,
                 info.MenorPosicion.nRegistro,
                 minor_time,
+                info.MenorPosicion.fecha.tv_usec,
                 info.MayorPosicion.nEscritura,
                 info.MayorPosicion.nRegistro,
-                major_time);
+                major_time,
+                info.MayorPosicion.fecha.tv_usec);
 
         if ((offset += mi_write(report, &buffer, offset, strlen(buffer))) < 0) {
             fprintf(stderr, "Error writing to %s\n", report);
