@@ -1,6 +1,7 @@
 #include "bloques.h"
 #include <limits.h>
 #include <time.h>
+#include <math.h>
 
 #define DEBUG3 0
 #define DEBUG4 0
@@ -10,8 +11,8 @@
 #define DEBUG8 0
 #define DEBUG9 0
 #define DEBUG12 0
-#define DEBUGENTREGA1 0
-#define DEBUGIMPORTANT 1
+#define DEBUGENTREGA1 1
+#define DEBUGIMPORTANT 0
 
 #define POS_SB 0      // The SB is written in the first block of our file system
 #define TAM_SB 1      // Unit: Blocks
@@ -23,6 +24,10 @@
 #define INDIRECTOS0 (NPUNTEROS + DIRECTOS)                            // 1 nivel (268)
 #define INDIRECTOS1 (NPUNTEROS * NPUNTEROS + INDIRECTOS0)             // 2 niveles (65804)
 #define INDIRECTOS2 (NPUNTEROS * NPUNTEROS * NPUNTEROS + INDIRECTOS1) // 3 niveles (16843020)
+#define LIBERAR_BLOQUES_INODO_FREE_NONE 0 // No blocks were modified, no need to rewrite
+#define LIBERAR_BLOQUES_INODO_FREE_SOME 1 // Some blocks were freed, but not all, so the pointer block has to be rewritten
+#define LIBERAR_BLOQUES_INODO_FREE_ALL 2 // All blocks were freed, no need to rewrite, but the pointer block has to be freed
+
 
 typedef union {
     struct

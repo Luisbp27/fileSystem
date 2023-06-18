@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
         memset(buffer, 0, sizeof(buffer));
 
         sprintf(buffer, "PID: %i\nNumero de escrituras: %i\n", pid, info.nEscrituras);
-        sprintf(buffer + strlen(buffer), "%s %i %i %ld usec",
+        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld usec",
                 "Primera escritura",
                 info.PrimeraEscritura.nEscritura,
                 info.PrimeraEscritura.nRegistro,

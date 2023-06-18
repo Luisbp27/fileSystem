@@ -680,6 +680,99 @@ int liberar_inodo(unsigned int ninodo) {
     return ninodo;
 }
 
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
+int all_zeros(unsigned int *buf, size_t len) {
+    for (int i = 0; i < len; i++) {
+        if (buf[i] != 0) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int liberar_bloques_inodo_recursivo(unsigned int *ptrs, unsigned int ptrs_len, unsigned int *nBL, unsigned int ultimoBL, unsigned int level, unsigned int *mod, unsigned int *bread_counter, unsigned int *bwrite_counter) {
+    unsigned int liberados = 0;
+    int index = obtener_indice(*nBL, level);
+
+    if (level <= 1) {
+        int index_max = max(ptrs_len - 1, obtener_indice(*nBL, level));
+
+        *mod = LIBERAR_BLOQUES_INODO_FREE_NONE;
+        for (int i = index; i <= index_max; i++) {
+            *nBL += 1;
+
+            if (ptrs[i] == 0) {
+                continue;
+            }
+
+            liberar_bloque(ptrs[i]);
+
+#if DEBUGENTREGA1
+            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", ptrs[i], *nBL - 1);
+#endif
+
+            ptrs[i] = 0;
+            liberados++;
+            *mod = LIBERAR_BLOQUES_INODO_FREE_SOME;
+        }
+
+        // If it's all zeros, there is no data so it can be freed
+        if (all_zeros(ptrs, ptrs_len)) {
+            *mod = LIBERAR_BLOQUES_INODO_FREE_ALL;
+        }
+
+        return liberados;
+    }
+
+    *mod = LIBERAR_BLOQUES_INODO_FREE_NONE;
+    unsigned int ptrs_buf[NPUNTEROS];
+    for (int i = index; i < ptrs_len; i++) {
+        unsigned int new_level = level - 1;
+
+        if (ptrs[i] == 0) {
+            *nBL += pow(NPUNTEROS, new_level);
+            continue;
+        }
+
+        bread(ptrs[i], ptrs_buf);
+        *bread_counter += 1;
+
+        unsigned int i_mod;
+        liberados += liberar_bloques_inodo_recursivo(ptrs_buf, NPUNTEROS, nBL, ultimoBL, new_level, &i_mod, bread_counter, bwrite_counter);
+
+        if (i_mod == LIBERAR_BLOQUES_INODO_FREE_ALL) {
+            liberar_bloque(ptrs[i]);
+
+#if DEBUGENTREGA1
+            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d]\n", ptrs[i], new_level);
+#endif
+
+            ptrs[i] = 0;
+            liberados++;
+            *mod = LIBERAR_BLOQUES_INODO_FREE_SOME;
+        } else if (i_mod == LIBERAR_BLOQUES_INODO_FREE_SOME) {
+            bwrite(ptrs[i], ptrs_buf);
+            *bwrite_counter += 1;
+
+            *mod = LIBERAR_BLOQUES_INODO_FREE_SOME;
+        }
+    }
+
+    if (all_zeros(ptrs_buf, NPUNTEROS)) {
+        *mod = LIBERAR_BLOQUES_INODO_FREE_ALL;
+    }
+
+    return liberados;
+}
+
 /**
  * This method is responsible for freeing all the blocks of an inode.
  *
@@ -689,108 +782,64 @@ int liberar_inodo(unsigned int ninodo) {
  * @return Number of freed blocks
  */
 int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
-
-    unsigned int nivel_punteros, indice, nBL, ultimoBL;
-    unsigned int ptr = 0;
-    unsigned int bloque_punteros[3][NPUNTEROS];
-    unsigned char bufAux_punteros[BLOCKSIZE];
-    int ptr_nivel[3], nRangoBL, indices[3];
-    int liberados = 0;
-
-    // Check if the file is empty
     if (inodo->tamEnBytesLog == 0) {
         return 0;
     }
 
-    // Obtain the number of the last block
-    if (inodo->tamEnBytesLog % BLOCKSIZE == 0) {
-        ultimoBL = (inodo->tamEnBytesLog / BLOCKSIZE) - 1;
-    } else {
-        ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE;
-    }
-
-    memset(bufAux_punteros, 0, BLOCKSIZE);
+    unsigned int liberados = 0;
+    unsigned int bread_counter = 0;
+    unsigned int bwrite_counter = 0;
+    unsigned int nBL = primerBL;
+    unsigned int ultimoBL = inodo->tamEnBytesLog % BLOCKSIZE == 0 ? inodo->tamEnBytesLog / BLOCKSIZE - 1 : inodo->tamEnBytesLog / BLOCKSIZE;
 
 #if DEBUGENTREGA1
-    fprintf(stderr, "[liberar_bloques_inodo()→ primerBL %d, utlimoBL %d]\n", primerBL, ultimoBL);
+    fprintf(stderr, "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n", primerBL, ultimoBL);
 #endif
 
-    for (nBL = primerBL; nBL <= ultimoBL; nBL++) {
-        // Check if the block is a direct pointer
-        nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr);
-        if (nRangoBL < 0) {
-            return FAILURE;
-        }
-        nivel_punteros = nRangoBL;
+    unsigned int ptrs_buf[NPUNTEROS];
 
-        // While are hanging pointer blocks
-        while (ptr > 0 && nivel_punteros > 0) {
-            indice = obtener_indice(nBL, nivel_punteros);
-            if (indice == 0 || nBL == primerBL) {
-                // Read from the device if it is not already previously loaded into a buffer
-                if (bread(ptr, bloque_punteros[nivel_punteros - 1]) == FAILURE) {
-                    return FAILURE;
-                }
-            }
+    unsigned int limits[] = {DIRECTOS, INDIRECTOS0, INDIRECTOS1, INDIRECTOS2};
+    for (int level = 0; level < sizeof(limits) / sizeof(limits[0]); level++) {
+        if (nBL < limits[level] && nBL <= ultimoBL) {
+            unsigned int *ptrs;
+            unsigned int len;
+            unsigned int bread_block;
+            unsigned int mod;
 
-            ptr_nivel[nivel_punteros - 1] = ptr;
-            indices[nivel_punteros - 1] = indice;
-            ptr = bloque_punteros[nivel_punteros - 1][indice];
-            nivel_punteros--;
-        }
-
-        // If the data block exists
-        if (ptr > 0) {
-            liberar_bloque(ptr);
-            liberados++;
-
-#if DEBUGENTREGA1
-            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de datos para BL %d]\n", ptr, nBL);
-#endif
-
-            // Check if is a direct pointer and set it to 0
-            if (nRangoBL == 0) {
-                inodo->punterosDirectos[nBL] = 0;
-
+            if (level == 0) {
+                ptrs = inodo->punterosDirectos;
+                len = DIRECTOS;
             } else {
-                nivel_punteros = 1;
+                bread_block = inodo->punterosIndirectos[level - 1];
+                bread(bread_block, ptrs_buf);
+                bread_counter++;
 
-                // While are hanging pointer blocks
-                while (nivel_punteros <= nRangoBL) {
-                    indice = indices[nivel_punteros - 1];
-                    bloque_punteros[nivel_punteros - 1][indice] = 0;
-                    ptr = ptr_nivel[nivel_punteros - 1];
+                ptrs = ptrs_buf;
+                len = NPUNTEROS;
+            }
 
-                    if (memcmp(bloque_punteros[nivel_punteros - 1], bufAux_punteros, BLOCKSIZE) == 0) {
-                        // No more occupied blocks will hang, the pointer block must be freed.
-                        liberar_bloque(ptr);
-                        liberados++;
+            liberados += liberar_bloques_inodo_recursivo(ptrs, len, &nBL, ultimoBL, level, &mod, &bread_counter, &bwrite_counter);
+
+            if (level != 0) {
+                if (mod == LIBERAR_BLOQUES_INODO_FREE_ALL) {
+                    liberar_bloque(bread_block);
 
 #if DEBUGENTREGA1
-                        fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d correspondiente al BL: %d]\n", ptr, nivel_punteros, nBL);
+            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d]\n", bread_block, level);
 #endif
 
-                        if (nivel_punteros == nRangoBL) {
-                            inodo->punterosIndirectos[nRangoBL - 1] = 0;
-                        }
-
-                        nivel_punteros++;
-
-                    } else {
-                        // There are still occupied blocks hanging, the pointer block must be updated.
-                        if (bwrite(ptr, bloque_punteros[nivel_punteros - 1]) == FAILURE) {
-                            return FAILURE;
-                        }
-
-                        nivel_punteros = nRangoBL + 1;
-                    }
+                    bread_block = 0;
+                    liberados++;
+                } else if (mod == LIBERAR_BLOQUES_INODO_FREE_SOME) {
+                    bwrite(bread_block, ptrs_buf);
+                    bwrite_counter++;
                 }
             }
         }
     }
 
 #if DEBUGENTREGA1
-    fprintf(stderr, "[liberar_bloques_inodo()→ total bloques liberados: %d]\n", liberados);
+    fprintf(stderr, "[liberar_bloques_inodo()→ total bloques liberados: %d, total breads: %d, total_bwrites: %d]\n", liberados, bread_counter, bwrite_counter);
 #endif
 
     return liberados;
