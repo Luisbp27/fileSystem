@@ -680,10 +680,6 @@ int liberar_inodo(unsigned int ninodo) {
     return ninodo;
 }
 
-int min(int a, int b) {
-    return a < b ? a : b;
-}
-
 int max(int a, int b) {
     return a > b ? a : b;
 }
@@ -700,7 +696,7 @@ int all_zeros(unsigned int *buf, size_t len) {
 
 int liberar_bloques_inodo_recursivo(unsigned int *ptrs, unsigned int ptrs_len, unsigned int *nBL, unsigned int ultimoBL, unsigned int level, unsigned int *mod, unsigned int *bread_counter, unsigned int *bwrite_counter) {
     unsigned int liberados = 0;
-    int index = obtener_indice(*nBL, level);
+    int index = ptrs_len == 1 ? 0 : obtener_indice(*nBL, level);
 
     if (level <= 1) {
         int index_max = max(ptrs_len - 1, obtener_indice(*nBL, level));
@@ -766,7 +762,7 @@ int liberar_bloques_inodo_recursivo(unsigned int *ptrs, unsigned int ptrs_len, u
         }
     }
 
-    if (all_zeros(ptrs_buf, NPUNTEROS)) {
+    if (all_zeros(ptrs, ptrs_len)) {
         *mod = LIBERAR_BLOQUES_INODO_FREE_ALL;
     }
 
@@ -796,46 +792,18 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
     fprintf(stderr, "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n", primerBL, ultimoBL);
 #endif
 
-    unsigned int ptrs_buf[NPUNTEROS];
-
-    unsigned int limits[] = {DIRECTOS, INDIRECTOS0, INDIRECTOS1, INDIRECTOS2};
-    for (int level = 0; level < sizeof(limits) / sizeof(limits[0]); level++) {
-        if (nBL < limits[level] && nBL <= ultimoBL) {
-            unsigned int *ptrs;
-            unsigned int len;
-            unsigned int bread_block;
-            unsigned int mod;
-
-            if (level == 0) {
-                ptrs = inodo->punterosDirectos;
-                len = DIRECTOS;
-            } else {
-                bread_block = inodo->punterosIndirectos[level - 1];
-                bread(bread_block, ptrs_buf);
-                bread_counter++;
-
-                ptrs = ptrs_buf;
-                len = NPUNTEROS;
-            }
-
-            liberados += liberar_bloques_inodo_recursivo(ptrs, len, &nBL, ultimoBL, level, &mod, &bread_counter, &bwrite_counter);
-
-            if (level != 0) {
-                if (mod == LIBERAR_BLOQUES_INODO_FREE_ALL) {
-                    liberar_bloque(bread_block);
-
-#if DEBUGENTREGA1
-            fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d]\n", bread_block, level);
-#endif
-
-                    bread_block = 0;
-                    liberados++;
-                } else if (mod == LIBERAR_BLOQUES_INODO_FREE_SOME) {
-                    bwrite(bread_block, ptrs_buf);
-                    bwrite_counter++;
-                }
-            }
-        }
+    unsigned int mod;
+    if (nBL < DIRECTOS && nBL <= ultimoBL) {
+        liberados += liberar_bloques_inodo_recursivo(inodo->punterosDirectos, DIRECTOS, &nBL, ultimoBL, 0, &mod, &bread_counter, &bwrite_counter);
+    }
+    if (nBL < INDIRECTOS0 && nBL <= ultimoBL) {
+        liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[0], 1, &nBL, ultimoBL, 2, &mod, &bread_counter, &bwrite_counter);
+    }
+    if (nBL < INDIRECTOS1 && nBL <= ultimoBL) {
+    liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[1], 1, &nBL, ultimoBL, 3, &mod, &bread_counter, &bwrite_counter);
+    }
+    if (nBL < INDIRECTOS2 && nBL <= ultimoBL) {
+    liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[2], 1, &nBL, ultimoBL, 4, &mod, &bread_counter, &bwrite_counter);
     }
 
 #if DEBUGENTREGA1
