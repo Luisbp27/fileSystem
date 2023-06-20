@@ -796,10 +796,10 @@ int liberar_bloques_inodo(unsigned int primerBL, inodo_t *inodo) {
         liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[0], 1, &nBL, ultimoBL, 2, &mod, &bread_counter, &bwrite_counter);
     }
     if (nBL < INDIRECTOS1 && nBL <= ultimoBL) {
-    liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[1], 1, &nBL, ultimoBL, 3, &mod, &bread_counter, &bwrite_counter);
+        liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[1], 1, &nBL, ultimoBL, 3, &mod, &bread_counter, &bwrite_counter);
     }
     if (nBL < INDIRECTOS2 && nBL <= ultimoBL) {
-    liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[2], 1, &nBL, ultimoBL, 4, &mod, &bread_counter, &bwrite_counter);
+        liberados += liberar_bloques_inodo_recursivo(&inodo->punterosIndirectos[2], 1, &nBL, ultimoBL, 4, &mod, &bread_counter, &bwrite_counter);
     }
 
 #if DEBUGENTREGA1
