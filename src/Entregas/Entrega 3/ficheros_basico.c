@@ -696,12 +696,15 @@ int all_zeros(unsigned int *buf, size_t len) {
 
 int liberar_bloques_inodo_recursivo(unsigned int *ptrs, unsigned int ptrs_len, unsigned int *nBL, unsigned int ultimoBL, unsigned int level, unsigned int *mod, unsigned int *bread_counter, unsigned int *bwrite_counter) {
     unsigned int liberados = 0;
+    // Los punteros indirectos se separan al inicio de la recursividad, poniendo el bloque
+    // del puntero indirecto en ptrs y ptrs_len == 1. Si este es el caso, no tiene sentido obtener
+    // el indice inicial por medio de obtener_indice y además daría error en muchos casos
     int index = ptrs_len == 1 ? 0 : obtener_indice(*nBL, level);
 
     if (level <= 1) {
         int index_max = max(ptrs_len - 1, obtener_indice(*nBL, level));
 
-        *mod = LIBERAR_BLOQUES_INODO_FREE_NONE;
+        *mod = 0;
         for (int i = index; i <= index_max; i++) {
             *nBL += 1;
 
@@ -717,18 +720,13 @@ int liberar_bloques_inodo_recursivo(unsigned int *ptrs, unsigned int ptrs_len, u
 
             ptrs[i] = 0;
             liberados++;
-            *mod = LIBERAR_BLOQUES_INODO_FREE_SOME;
-        }
-
-        // If it's all zeros, there is no data so it can be freed
-        if (all_zeros(ptrs, ptrs_len)) {
-            *mod = LIBERAR_BLOQUES_INODO_FREE_ALL;
+            *mod = 1;
         }
 
         return liberados;
     }
 
-    *mod = LIBERAR_BLOQUES_INODO_FREE_NONE;
+    *mod = 0;
     unsigned int ptrs_buf[NPUNTEROS];
     for (int i = index; i < ptrs_len; i++) {
         unsigned int new_level = level - 1;
@@ -744,7 +742,7 @@ int liberar_bloques_inodo_recursivo(unsigned int *ptrs, unsigned int ptrs_len, u
         unsigned int i_mod;
         liberados += liberar_bloques_inodo_recursivo(ptrs_buf, NPUNTEROS, nBL, ultimoBL, new_level, &i_mod, bread_counter, bwrite_counter);
 
-        if (i_mod == LIBERAR_BLOQUES_INODO_FREE_ALL) {
+        if (all_zeros(ptrs_buf, NPUNTEROS)) {
             liberar_bloque(ptrs[i]);
 
 #if DEBUGENTREGA1
@@ -753,17 +751,15 @@ int liberar_bloques_inodo_recursivo(unsigned int *ptrs, unsigned int ptrs_len, u
 
             ptrs[i] = 0;
             liberados++;
-            *mod = LIBERAR_BLOQUES_INODO_FREE_SOME;
-        } else if (i_mod == LIBERAR_BLOQUES_INODO_FREE_SOME) {
+            *mod = 1;
+        } else if (i_mod == 1) {
             bwrite(ptrs[i], ptrs_buf);
             *bwrite_counter += 1;
 
-            *mod = LIBERAR_BLOQUES_INODO_FREE_SOME;
+#if DEBUGENTREGA1
+        fprintf(stderr, "[liberar_bloques_inodo()→ salvado BF %d de punteros_nivel%d]\n", ptrs[i], new_level);
+#endif
         }
-    }
-
-    if (all_zeros(ptrs, ptrs_len)) {
-        *mod = LIBERAR_BLOQUES_INODO_FREE_ALL;
     }
 
     return liberados;
