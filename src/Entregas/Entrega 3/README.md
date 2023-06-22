@@ -31,15 +31,15 @@
 
 ## *Mejoras:*
 
-- [ ] Mejora librar_bloques_inodo
-- [x] Entradas buffer --> buscar_entradas() & mi_dir()
-- [x] Diversas mejoras del mi_ls
-- [x] Caché directorios LRU & FIFO
-- [x] mi_touch & mi_rmdir
-- [x] mi_rm_r
+- [x] Mejora librar_bloques_inodo: compactación del algoritmo inodo->hojas (óptimo) y recursividad
+- [x] Buffer entradas: buscar_entradas() y mi_dir()
+- [x] Mejoras del mi_ls: más info, colores, acepta ficheros y flag para activar más info
+- [x] Caché directorios: LRU y FIFO
+- [x] mi_touch y mi_rmdir
+- [x] mi_rm_r: dentro de mi_rm como flag -r
 - [x] mi_rn
-- [x] mi_cp
+- [x] mi_cp: ficheros y directorios
 - [x] mi_mv
-- [x] mmap
+- [x] mmap: activable y desactivable
 - [x] Secciones críticas capa de ficheros
-- [x] Sellos de tiempo en microsegundos
+- [x] Sellos de tiempo en microsegundos: simulación y LRU

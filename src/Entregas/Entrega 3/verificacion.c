@@ -115,21 +115,21 @@ int main(int argc, char **argv) {
         memset(buffer, 0, sizeof(buffer));
 
         sprintf(buffer, "PID: %i\nNumero de escrituras: %i\n", pid, info.nEscrituras);
-        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld usec",
+        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld",
                 "Primera escritura",
                 info.PrimeraEscritura.nEscritura,
                 info.PrimeraEscritura.nRegistro,
                 asctime(localtime(&info.PrimeraEscritura.fecha.tv_sec)),
                 info.PrimeraEscritura.fecha.tv_usec);
 
-        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld usec",
+        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld",
                 "Ultima escritura",
                 info.UltimaEscritura.nEscritura,
                 info.UltimaEscritura.nRegistro,
                 asctime(localtime(&info.UltimaEscritura.fecha.tv_sec)),
                 info.UltimaEscritura.fecha.tv_usec);
 
-        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld usec",
+        sprintf(buffer + strlen(buffer), "%s %i %i %s %ld",
                 "Menor posicion",
                 info.MenorPosicion.nEscritura,
                 info.MenorPosicion.nRegistro,
@@ -145,8 +145,8 @@ int main(int argc, char **argv) {
 
         sprintf(buffer,
                 "PID: %d\nNumero de escrituras:\t%d\nPrimera escritura:"
-                "\t%d\t%d\t%s %ld usec\nUltima escritura:\t%d\t%d\t%s %ld usec\nMayor po"
-                "sición:\t\t%d\t%d\t%s %ld usec\nMenor posición:\t\t%d\t%d\t%s %ld usec\n\n",
+                "\t%d\t%d\t%s %ld\nUltima escritura:\t%d\t%d\t%s %ld\nMayor po"
+                "sición:\t\t%d\t%d\t%s %ld\nMenor posición:\t\t%d\t%d\t%s %ld\n\n",
                 info.pid, info.nEscrituras,
                 info.PrimeraEscritura.nEscritura,
                 info.PrimeraEscritura.nRegistro,
